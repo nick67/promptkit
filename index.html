@@ -103,6 +103,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .var-label{font-size:14px;color:var(--accent2);white-space:nowrap;font-family:var(--font-mono)}
 .var-input{background:var(--bg3);border:1px solid var(--line2);border-radius:6px;padding:7px 10px;font-family:var(--font-mono);font-size:16px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
 .var-input:focus{border-color:var(--accent)}
+.var-row{position:relative}
+.hint-tooltip{position:absolute;left:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--accent);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px 12px;border-radius:var(--r);line-height:1.6;z-index:50;white-space:normal;max-width:420px;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.var-row:hover .hint-tooltip{opacity:1;transform:translateY(0)}
+.hint-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);color:var(--muted);font-size:11px;cursor:default;flex-shrink:0;transition:border-color .15s,color .15s}
+.var-row:hover .hint-icon{border-color:var(--accent);color:var(--accent2)}
 .editor-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn{padding:9px 16px;border-radius:var(--r);font-family:var(--font-mono);font-size:15px;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;gap:6px}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -773,9 +778,14 @@ function selectTemplate(tpl) {
       const row = document.createElement('div');
       row.className = 'var-row';
       const hint = HINTS[v] || v.replace(/_/g,' ') + '...';
+      const shortPlaceholder = hint.length > 40 ? hint.slice(0, 38) + '…' : hint;
       row.innerHTML = `
-        <label class="var-label">{{${v}}}</label>
-        <input class="var-input" type="text" placeholder="${hint}" data-var="${v}">`;
+        <label class="var-label" style="display:flex;align-items:center;gap:6px;">
+          {{${v}}}
+          <span class="hint-icon" aria-label="hint">?</span>
+          <span class="hint-tooltip">${hint}</span>
+        </label>
+        <input class="var-input" type="text" placeholder="${shortPlaceholder}" data-var="${v}">`;
       varGrid.appendChild(row);
     });
     varGrid.querySelectorAll('.var-input').forEach(inp => {
