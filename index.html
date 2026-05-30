@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0f13">
+<meta name="description" content="Prompt Builder για Claude - PWA εφαρμογή">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>PromptKit</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;
+  --bg2:#16161d;
+  --bg3:#1e1e28;
+  --line:#2a2a38;
+  --line2:#3a3a50;
+  --text:#e8e8f0;
+  --muted:#7070a0;
+  --accent:#7c6aff;
+  --accent2:#a892ff;
+  --accent3:#3dffc3;
+  --warn:#ff7c6a;
+  --info:#6ab8ff;
+  --font-head:'Syne',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --r:8px;
+  --r2:12px;
+}
+html{font-size:14px;color-scheme:dark}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100dvh;overflow-x:hidden}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:260px 1fr;grid-template-rows:52px 1fr;height:100dvh;overflow:hidden}
+
+/* TOPBAR */
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--bg2)}
+.logo{font-family:var(--font-head);font-size:18px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
+.logo span{color:var(--accent3)}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--bg3);border:1px solid var(--line2);color:var(--muted);font-family:var(--font-mono)}
+.badge.online{border-color:var(--accent3);color:var(--accent3)}
+#install-btn{display:none;font-size:11px;padding:5px 12px;border-radius:20px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:var(--font-mono);transition:opacity .2s}
+#install-btn:hover{opacity:.85}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-section{padding:12px 16px 8px;font-size:10px;letter-spacing:.12em;color:var(--muted);font-family:var(--font-head);font-weight:600;text-transform:uppercase}
+.cat-list{list-style:none;padding:0 8px}
+.cat-item{padding:7px 10px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);transition:all .15s;border:1px solid transparent}
+.cat-item:hover{background:var(--bg3);color:var(--text)}
+.cat-item.active{background:var(--bg3);color:var(--accent2);border-color:var(--line2)}
+.cat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cat-count{margin-left:auto;font-size:10px;background:var(--bg);padding:1px 6px;border-radius:10px;color:var(--muted)}
+
+.sidebar-divider{height:1px;background:var(--line);margin:8px 16px}
+.sidebar-bottom{margin-top:auto;padding:12px}
+.history-toggle{width:100%;padding:8px 12px;border-radius:var(--r);background:transparent;border:1px solid var(--line2);color:var(--muted);font-family:var(--font-mono);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s}
+.history-toggle:hover{border-color:var(--accent);color:var(--text)}
+#hist-count{margin-left:auto;font-size:10px;background:var(--bg3);padding:1px 6px;border-radius:10px}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;overflow:hidden}
+
+/* PANEL SPLIT */
+.panel-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0;overflow:hidden}
+.panel{display:flex;flex-direction:column;overflow:hidden}
+.panel+.panel{border-left:1px solid var(--line)}
+.panel-header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:var(--bg2)}
+.panel-title{font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.08em}
+.panel-sub{font-size:10px;color:var(--muted);margin-left:auto}
+.panel-body{flex:1;overflow-y:auto;padding:16px}
+
+/* TEMPLATE GRID */
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpl-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.tpl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--cat-color,var(--line2));opacity:0;transition:opacity .15s}
+.tpl-card:hover{border-color:var(--line2);background:var(--bg3)}
+.tpl-card:hover::before{opacity:1}
+.tpl-card.selected{border-color:var(--accent);background:var(--bg3)}
+.tpl-card.selected::before{opacity:1;background:var(--accent)}
+.tpl-name{font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tpl-desc{font-size:10px;color:var(--muted);line-height:1.5}
+.tpl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tag{font-size:9px;padding:2px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--line2);color:var(--muted)}
+
+/* EDITOR PANEL */
+.prompt-editor-wrap{position:relative;flex:1;display:flex;flex-direction:column;gap:12px}
+.editor-textarea{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:14px;font-family:var(--font-mono);font-size:12px;color:var(--text);resize:none;outline:none;line-height:1.7;min-height:180px;transition:border-color .2s}
+.editor-textarea:focus{border-color:var(--accent)}
+.var-section{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px}
+.var-title{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;font-family:var(--font-head);font-weight:600}
+.var-grid{display:grid;gap:6px}
+.var-row{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+.var-label{font-size:10px;color:var(--accent2);white-space:nowrap;font-family:var(--font-mono)}
+.var-input{background:var(--bg3);border:1px solid var(--line2);border-radius:6px;padding:5px 8px;font-family:var(--font-mono);font-size:11px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
+.var-input:focus{border-color:var(--accent)}
+.editor-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:7px 14px;border-radius:var(--r);font-family:var(--font-mono);font-size:11px;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.85}
+.btn-ghost{background:transparent;border-color:var(--line2);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-success{background:transparent;border-color:var(--accent3);color:var(--accent3)}
+.btn-warn{background:transparent;border-color:var(--warn);color:var(--warn)}
+.btn:active{transform:scale(.97)}
+.copy-flash{background:var(--accent3)!important;border-color:var(--accent3)!important;color:#000!important}
+
+/* OUTPUT */
+.output-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:14px;font-family:var(--font-mono);font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:100px;flex:1;overflow-y:auto;position:relative}
+.output-box .highlight{color:var(--accent2);font-weight:500}
+.output-placeholder{color:var(--muted);font-style:italic}
+.char-count{font-size:9px;color:var(--muted);text-align:right;margin-top:4px}
+
+/* HISTORY DRAWER */
+.history-drawer{position:fixed;inset:0;z-index:100;display:none}
+.history-drawer.open{display:flex}
+.drawer-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.drawer-panel{position:relative;margin-left:auto;width:380px;height:100%;background:var(--bg2);border-left:1px solid var(--line);display:flex;flex-direction:column;animation:slideIn .2s ease}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.drawer-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.drawer-title{font-family:var(--font-head);font-size:14px;font-weight:600}
+.drawer-close{margin-left:auto;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px}
+.drawer-close:hover{color:var(--text)}
+.hist-list{flex:1;overflow-y:auto;padding:12px}
+.hist-item{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.hist-item:hover{border-color:var(--line2)}
+.hist-item-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hist-item-name{font-family:var(--font-head);font-size:11px;font-weight:600;color:var(--accent2)}
+.hist-item-time{font-size:9px;color:var(--muted)}
+.hist-item-preview{font-size:10px;color:var(--muted);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-item-del{float:right;background:transparent;border:none;color:var(--warn);cursor:pointer;font-size:11px;padding:2px 4px;opacity:0;transition:opacity .15s}
+.hist-item:hover .hist-item-del{opacity:1}
+.hist-empty{text-align:center;color:var(--muted);font-size:11px;padding:40px 0}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--accent3);color:var(--accent3);font-family:var(--font-mono);font-size:11px;padding:10px 16px;border-radius:var(--r);transform:translateY(120%);transition:transform .25s;z-index:200}
+.toast.show{transform:translateY(0)}
+
+/* NO TEMPLATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted)}
+.empty-state .big{font-family:var(--font-head);font-size:32px;font-weight:700;color:var(--line2)}
+.empty-state p{font-size:11px;text-align:center;line-height:1.7}
+
+/* AI IMPROVE MODAL */
+.ai-modal{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.ai-modal.open{display:flex}
+.ai-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.75)}
+.ai-modal-box{position:relative;width:100%;max-width:640px;background:var(--bg2);border:1px solid var(--line2);border-radius:16px;overflow:hidden;animation:popIn .2s ease}
+@keyframes popIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.ai-modal-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.ai-modal-title{font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--text)}
+.ai-modal-badge{font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(124,106,255,.15);border:1px solid rgba(124,106,255,.4);color:var(--accent2)}
+.ai-modal-close{margin-left:auto;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px}
+.ai-modal-close:hover{color:var(--text)}
+.ai-modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.ai-mode-tabs{display:flex;gap:6px}
+.ai-tab{padding:6px 14px;border-radius:var(--r);font-family:var(--font-mono);font-size:11px;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all .15s}
+.ai-tab:hover{color:var(--text);border-color:var(--line2)}
+.ai-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.ai-preview-label{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:var(--font-head);font-weight:600;margin-bottom:6px}
+.ai-preview-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:14px;font-family:var(--font-mono);font-size:11px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto}
+.ai-preview-box .ai-hl{color:var(--accent3)}
+.ai-modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.btn-ai{background:linear-gradient(135deg,#7c6aff,#a892ff);border:none;color:#fff;font-family:var(--font-mono);font-size:12px;padding:8px 18px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:7px;transition:opacity .15s;font-weight:500}
+.btn-ai:hover{opacity:.88}
+.btn-ai:active{transform:scale(.97)}
+.btn-ai-secondary{background:transparent;border:1px solid var(--accent);color:var(--accent2);font-family:var(--font-mono);font-size:11px;padding:7px 14px;border-radius:var(--r);cursor:pointer;transition:all .15s}
+.btn-ai-secondary:hover{background:rgba(124,106,255,.1)}
+.improve-btn{background:transparent;border:1px solid rgba(124,106,255,.5);color:var(--accent2);font-family:var(--font-mono);font-size:11px;padding:7px 14px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+.improve-btn:hover{border-color:var(--accent);background:rgba(124,106,255,.1);color:#fff}
+.improve-btn .spark{font-size:13px}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .app{grid-template-columns:1fr;grid-template-rows:52px auto 1fr}
+  .sidebar{display:none}
+  .panel-area{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">Prompt<span>Kit</span></div>
+    <div class="badge online" id="sw-badge">offline ready</div>
+    <div class="topbar-actions">
+      <button id="install-btn">↓ Install</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Κατηγορίες</div>
+    <ul class="cat-list" id="cat-list"></ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-bottom">
+      <button class="history-toggle" id="hist-btn">
+        <span>📋</span> History
+        <span id="hist-count" class="cat-count">0</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="panel-area">
+      <!-- LEFT: Templates -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Templates</span>
+          <span class="panel-sub" id="tpl-count-label">—</span>
+        </div>
+        <div class="panel-body">
+          <div class="template-grid" id="template-grid"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Editor + Output -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Editor</span>
+          <span class="panel-sub" id="selected-tpl-name">Επίλεξε template</span>
+        </div>
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:14px">
+          <!-- Editor -->
+          <div>
+            <textarea class="editor-textarea" id="prompt-editor" rows="8" placeholder="Επέλεξε ένα template ή γράψε το prompt σου εδώ..."></textarea>
+            <div class="char-count"><span id="char-count">0</span> χαρακτήρες</div>
+          </div>
+
+          <!-- Variables -->
+          <div class="var-section" id="var-section" style="display:none">
+            <div class="var-title">⚙ Παράμετροι</div>
+            <div class="var-grid" id="var-grid"></div>
+          </div>
+
+          <!-- Output -->
+          <div>
+            <div class="var-title" style="font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'Syne',sans-serif;font-weight:600;margin-bottom:6px">Preview</div>
+            <div class="output-box" id="output-box"><span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span></div>
+          </div>
+
+          <!-- Actions -->
+          <div class="editor-actions">
+            <button class="btn btn-primary" id="copy-btn">Copy prompt</button>
+            <button class="btn btn-success" id="save-btn">Αποθήκευση</button>
+            <button class="improve-btn" id="improve-btn"><span class="spark">✨</span> Improve with Claude</button>
+            <button class="btn btn-ghost" id="clear-btn">Καθαρισμός</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- HISTORY DRAWER -->
+<div class="history-drawer" id="history-drawer">
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <span class="drawer-title">Prompt History</span>
+      <button class="drawer-close" id="drawer-close">✕</button>
+    </div>
+    <div class="hist-list" id="hist-list"></div>
+  </div>
+</div>
+
+<!-- AI IMPROVE MODAL -->
+<div class="ai-modal" id="ai-modal">
+  <div class="ai-modal-overlay" id="ai-modal-overlay"></div>
+  <div class="ai-modal-box">
+    <div class="ai-modal-head">
+      <span class="ai-modal-title">✨ Improve with Claude</span>
+      <span class="ai-modal-badge">claude.ai</span>
+      <button class="ai-modal-close" id="ai-modal-close">✕</button>
+    </div>
+    <div class="ai-modal-body">
+      <div>
+        <div class="ai-preview-label">Λειτουργία</div>
+        <div class="ai-mode-tabs">
+          <button class="ai-tab active" data-mode="improve">Βελτίωση prompt</button>
+          <button class="ai-tab" data-mode="send">Αποστολή prompt</button>
+          <button class="ai-tab" data-mode="explain">Εξήγηση στρατηγικής</button>
+        </div>
+      </div>
+      <div>
+        <div class="ai-preview-label">Preview — τι θα σταλεί στον Claude</div>
+        <div class="ai-preview-box" id="ai-preview-box">...</div>
+      </div>
+    </div>
+    <div class="ai-modal-foot">
+      <button class="btn-ai-secondary" id="ai-copy-btn">Copy text</button>
+      <button class="btn-ai" id="ai-open-btn">Άνοιγμα στο claude.ai ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id:'all',   label:'Όλα',               color:'#7070a0' },
+  { id:'pwa',   label:'PWA / Frontend',    color:'#7c6aff' },
+  { id:'ui',    label:'UI/UX Design',      color:'#6ab8ff' },
+  { id:'debug', label:'Debugging',         color:'#ff7c6a' },
+  { id:'sim',   label:'Προσομοιώσεις',     color:'#3dffc3' },
+  { id:'gen',   label:'Γενικό',            color:'#a892ff' },
+];
+
+const TEMPLATES = [
+  // PWA
+  { id:'pwa1', cat:'pwa', name:'New PWA App', desc:'Δημιουργία νέας PWA εφαρμογής από το μηδέν', tags:['pwa','manifest','sw'],
+    template:`Δημιούργησε μια πλήρη PWA εφαρμογή με τίτλο "{{app_name}}" για {{purpose}}.
+
+Απαιτήσεις:
+- Αρχεία: index.html, manifest.json, sw.js
+- Offline support με Service Worker (cache-first στρατηγική)
+- Responsive design για mobile & desktop
+- Χρώμα θέματος: {{theme_color}}
+- Γλώσσα interface: {{language}}
+
+Χαρακτηριστικά που θέλω:
+{{features}}
+
+Τεχνικές σημειώσεις:
+- Χωρίς εξωτερικά frameworks εκτός από Google Fonts
+- Αποθήκευση δεδομένων στο localStorage
+- Εμφανής "install" κουμπί όταν είναι διαθέσιμο
+- Εξήγησε κάθε τμήμα κώδικα με σχόλια`,
+    vars:['app_name','purpose','theme_color','language','features'] },
+
+  { id:'pwa2', cat:'pwa', name:'Βελτίωση UI', desc:'Αναβάθμιση υπάρχουσας εφαρμογής', tags:['refactor','css','ux'],
+    template:`Βελτίωσε το UI της παρακάτω εφαρμογής:
+
+{{current_code}}
+
+Πρόβλημα / αδυναμία: {{problem}}
+
+Θέλω να:
+- {{improvement_1}}
+- {{improvement_2}}
+- Διατηρήσεις όλη τη λειτουργικότητα
+- Δώσεις animation/transitions όπου ταιριάζει
+- Χρησιμοποιήσεις CSS variables για consistency`,
+    vars:['current_code','problem','improvement_1','improvement_2'] },
+
+  { id:'pwa3', cat:'pwa', name:'Service Worker', desc:'Ρύθμιση SW με caching στρατηγική', tags:['sw','cache','offline'],
+    template:`Γράψε ένα Service Worker για PWA με:
+
+Στρατηγική: {{strategy}}
+App Shell files: {{shell_files}}
+Dynamic cache: {{dynamic_resources}}
+
+Να υποστηρίζει:
+- Background sync για offline actions
+- Push notifications (προαιρετικά)
+- Cache versioning με αυτόματο cleanup
+- Fallback page για offline
+
+Προσθέσε console.log με emoji για κάθε σημαντικό event.`,
+    vars:['strategy','shell_files','dynamic_resources'] },
+
+  // UI/UX
+  { id:'ui1', cat:'ui', name:'Component Design', desc:'Σχεδίαση UI component με HTML/CSS', tags:['component','css','html'],
+    template:`Σχεδίασε ένα {{component_type}} component για {{use_case}}.
+
+Aesthetic: {{aesthetic}} (π.χ. minimal, brutalist, glassmorphism, retro)
+Χρωματική παλέτα: {{color_palette}}
+Κινούμενα σχέδια: {{animations}}
+
+Απαιτήσεις:
+- Pure HTML/CSS (χωρίς JS αν δεν χρειάζεται)
+- Dark mode support με CSS variables
+- Accessible (ARIA labels, keyboard navigation)
+- Responsive από 320px+
+
+Δώσε μου επίσης:
+1. Εναλλακτικές παραλλαγές (variant states)
+2. CSS design tokens σε σχόλια`,
+    vars:['component_type','use_case','aesthetic','color_palette','animations'] },
+
+  { id:'ui2', cat:'ui', name:'Dashboard Layout', desc:'Δημιουργία dashboard με panels', tags:['dashboard','grid','data'],
+    template:`Φτιάξε ένα dashboard για {{dashboard_purpose}} με:
+
+Sections:
+{{sections}}
+
+Data που εμφανίζει: {{data_type}}
+Color scheme: {{color_scheme}}
+
+Τεχνικά:
+- CSS Grid layout (no frameworks)
+- Χρήση της παρακάτω mock data: {{mock_data}}
+- Responsive: mobile (1 col) → tablet (2 col) → desktop ({{desktop_cols}} cols)
+- Animated entry για τα cards (stagger effect)`,
+    vars:['dashboard_purpose','sections','data_type','color_scheme','mock_data','desktop_cols'] },
+
+  // Debugging
+  { id:'dbg1', cat:'debug', name:'Bug Analysis', desc:'Ανάλυση και διόρθωση bug', tags:['bug','fix','analysis'],
+    template:`Εντόπισε και διόρθωσε το παρακάτω πρόβλημα:
+
+**Κώδικας:**
+\`\`\`{{language}}
+{{buggy_code}}
+\`\`\`
+
+**Σφάλμα που εμφανίζεται:**
+{{error_message}}
+
+**Περιβάλλον:** {{environment}}
+**Πότε εμφανίζεται:** {{when_occurs}}
+
+Θέλω:
+1. Εξήγηση του root cause
+2. Διορθωμένο κώδικα
+3. Πώς να αποφύγω παρόμοια bugs στο μέλλον
+4. Αν υπάρχουν άλλα πιθανά προβλήματα στον κώδικα, ανέφερέ τα`,
+    vars:['language','buggy_code','error_message','environment','when_occurs'] },
+
+  { id:'dbg2', cat:'debug', name:'Performance Fix', desc:'Βελτίωση απόδοσης κώδικα', tags:['performance','optimize','profiling'],
+    template:`Βελτίωσε την απόδοση του παρακάτω κώδικα:
+
+\`\`\`{{language}}
+{{slow_code}}
+\`\`\`
+
+**Πρόβλημα:** {{perf_issue}}
+**Μετρήσεις τώρα:** {{current_metrics}}
+**Στόχος:** {{target_metrics}}
+
+Ανάλυσε:
+- Bottlenecks
+- Memory leaks
+- Unnecessary re-renders / reflows
+- Caching opportunities
+
+Δώσε optimized version με σχόλια για κάθε αλλαγή.`,
+    vars:['language','slow_code','perf_issue','current_metrics','target_metrics'] },
+
+  // Simulations
+  { id:'sim1', cat:'sim', name:'Physics Simulation', desc:'2D φυσική προσομοίωση με Canvas', tags:['physics','canvas','simulation'],
+    template:`Δημιούργησε μια 2D προσομοίωση {{physics_type}} με HTML Canvas.
+
+Παράμετροι:
+- Αριθμός αντικειμένων: {{num_objects}}
+- Gravity: {{gravity}} (π.χ. 9.8, 0, custom)
+- Friction: {{friction}}
+- Boundaries: {{boundaries}} (elastic/absorb/wrap)
+- FPS target: 60
+
+Οπτικά:
+- Background: {{bg_color}}
+- Particle χρώμα: {{particle_color}}
+- Trails: {{trails}} (yes/no)
+
+Controls (sliders/buttons):
+- Pause/Play
+- Reset
+- Gravity slider
+- {{custom_control}}
+
+Χρήση requestAnimationFrame, χωρίς εξωτερικές βιβλιοθήκες.
+Εξήγησε τους τύπους φυσικής που χρησιμοποιείς.`,
+    vars:['physics_type','num_objects','gravity','friction','boundaries','bg_color','particle_color','trails','custom_control'] },
+
+  { id:'sim2', cat:'sim', name:'Data Visualization', desc:'Interactive γράφημα με SVG/Canvas', tags:['chart','svg','data-viz'],
+    template:`Φτιάξε interactive visualization για {{data_description}}.
+
+Τύπος γραφήματος: {{chart_type}}
+Mock data: {{sample_data}}
+
+Features:
+- Hover tooltips με λεπτομέρειες
+- Animated entry (500ms ease-out)
+- Legend που κάνει toggle series
+- Export ως PNG button
+- Responsive resize
+
+Χρώματα: {{color_scheme}}
+Axes: {{axes_labels}}
+Χωρίς Chart.js ή D3 - pure SVG/Canvas.`,
+    vars:['data_description','chart_type','sample_data','color_scheme','axes_labels'] },
+
+  { id:'sim3', cat:'sim', name:'Game / Interactive', desc:'Απλό game ή interactive demo', tags:['game','canvas','interactive'],
+    template:`Φτιάξε {{game_type}} game/demo με HTML Canvas.
+
+Mechanics:
+{{game_mechanics}}
+
+Controls: {{controls}}
+Difficulty: {{difficulty}}
+Score system: {{score_system}}
+
+Οπτικά: {{visual_style}}
+Sound: χωρίς (μόνο visual feedback)
+
+Να περιλαμβάνει:
+- Game loop με requestAnimationFrame
+- State machine (menu → playing → game over)
+- Mobile support (touch events)
+- High score στο localStorage`,
+    vars:['game_type','game_mechanics','controls','difficulty','score_system','visual_style'] },
+
+  // General
+  { id:'gen1', cat:'gen', name:'Code Review', desc:'Αναλυτικό code review', tags:['review','quality','best-practices'],
+    template:`Κάνε αναλυτικό code review στον παρακάτω κώδικα:
+
+\`\`\`{{language}}
+{{code}}
+\`\`\`
+
+Εστίασε σε:
+1. Correctness & edge cases
+2. Security vulnerabilities
+3. Performance
+4. Readability & maintainability
+5. Best practices για {{language}}
+
+Βαθμολόγησε το 1-10 σε κάθε κατηγορία και δώσε actionable suggestions.`,
+    vars:['language','code'] },
+
+  { id:'gen2', cat:'gen', name:'Refactor', desc:'Ανακατασκευή κώδικα', tags:['refactor','clean-code'],
+    template:`Ανακατασκεύασε τον παρακάτω κώδικα:
+
+\`\`\`{{language}}
+{{code}}
+\`\`\`
+
+Στόχοι refactoring:
+{{goals}}
+
+Κανόνες:
+- Μη αλλάξεις τη λειτουργικότητα
+- Χρήση {{patterns}} patterns
+- Ελαχιστοποίηση duplication (DRY)
+- Προσθήκη JSDoc/comments όπου χρειάζεται
+
+Εξήγησε κάθε αλλαγή που κάνεις.`,
+    vars:['language','code','goals','patterns'] },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let state = {
+  selectedCat: 'all',
+  selectedTpl: null,
+  vars: {},
+  history: JSON.parse(localStorage.getItem('promptkit_history') || '[]'),
+};
+
+// ─── DOM REFS ─────────────────────────────────────────────────────────────────
+const catList      = document.getElementById('cat-list');
+const templateGrid = document.getElementById('template-grid');
+const tplCountLabel= document.getElementById('tpl-count-label');
+const promptEditor = document.getElementById('prompt-editor');
+const varSection   = document.getElementById('var-section');
+const varGrid      = document.getElementById('var-grid');
+const outputBox    = document.getElementById('output-box');
+const charCount    = document.getElementById('char-count');
+const copyBtn      = document.getElementById('copy-btn');
+const saveBtn      = document.getElementById('save-btn');
+const clearBtn     = document.getElementById('clear-btn');
+const selectedName = document.getElementById('selected-tpl-name');
+const histBtn      = document.getElementById('hist-btn');
+const histCount    = document.getElementById('hist-count');
+const histDrawer   = document.getElementById('history-drawer');
+const histList     = document.getElementById('hist-list');
+const drawerOverlay= document.getElementById('drawer-overlay');
+const drawerClose  = document.getElementById('drawer-close');
+const toast        = document.getElementById('toast');
+
+// ─── RENDER CATEGORIES ────────────────────────────────────────────────────────
+function renderCats() {
+  catList.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const count = cat.id === 'all' ? TEMPLATES.length : TEMPLATES.filter(t=>t.cat===cat.id).length;
+    const li = document.createElement('li');
+    li.className = 'cat-item' + (state.selectedCat===cat.id?' active':'');
+    li.innerHTML = `<span class="cat-dot" style="background:${cat.color}"></span>${cat.label}<span class="cat-count">${count}</span>`;
+    li.onclick = () => { state.selectedCat=cat.id; renderCats(); renderTemplates(); };
+    catList.appendChild(li);
+  });
+}
+
+// ─── RENDER TEMPLATES ─────────────────────────────────────────────────────────
+function renderTemplates() {
+  const filtered = state.selectedCat==='all' ? TEMPLATES : TEMPLATES.filter(t=>t.cat===state.selectedCat);
+  tplCountLabel.textContent = filtered.length + ' templates';
+  const catColor = CATEGORIES.find(c=>c.id===state.selectedCat)?.color || '#7070a0';
+
+  templateGrid.innerHTML = '';
+  filtered.forEach(tpl => {
+    const card = document.createElement('div');
+    card.className = 'tpl-card' + (state.selectedTpl?.id===tpl.id?' selected':'');
+    card.style.setProperty('--cat-color', catColor);
+    card.innerHTML = `
+      <div class="tpl-name">${tpl.name}</div>
+      <div class="tpl-desc">${tpl.desc}</div>
+      <div class="tpl-tags">${tpl.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+    card.onclick = () => selectTemplate(tpl);
+    templateGrid.appendChild(card);
+  });
+}
+
+// ─── SELECT TEMPLATE ──────────────────────────────────────────────────────────
+function selectTemplate(tpl) {
+  state.selectedTpl = tpl;
+  state.vars = {};
+  tpl.vars.forEach(v => { state.vars[v] = ''; });
+
+  promptEditor.value = tpl.template;
+  selectedName.textContent = tpl.name;
+
+  // Render variable inputs
+  if (tpl.vars.length > 0) {
+    varSection.style.display = 'block';
+    varGrid.innerHTML = '';
+    tpl.vars.forEach(v => {
+      const row = document.createElement('div');
+      row.className = 'var-row';
+      row.innerHTML = `
+        <label class="var-label">{{${v}}}</label>
+        <input class="var-input" type="text" placeholder="${v.replace(/_/g,' ')}..." data-var="${v}">`;
+      varGrid.appendChild(row);
+    });
+    varGrid.querySelectorAll('.var-input').forEach(inp => {
+      inp.oninput = () => { state.vars[inp.dataset.var] = inp.value; updateOutput(); };
+    });
+  } else {
+    varSection.style.display = 'none';
+  }
+
+  updateOutput();
+  renderTemplates();
+}
+
+// ─── UPDATE OUTPUT ────────────────────────────────────────────────────────────
+function updateOutput() {
+  let text = promptEditor.value;
+  charCount.textContent = text.length;
+
+  let rendered = text;
+  Object.entries(state.vars).forEach(([k,v]) => {
+    rendered = rendered.replaceAll(`{{${k}}}`, v || `{{${k}}}`);
+  });
+
+  // Highlight unfilled vars
+  const html = rendered
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\{\{([^}]+)\}\}/g, '<span class="highlight">{{$1}}</span>');
+
+  outputBox.innerHTML = html || '<span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span>';
+}
+
+// ─── COPY ─────────────────────────────────────────────────────────────────────
+copyBtn.onclick = async () => {
+  let text = promptEditor.value;
+  Object.entries(state.vars).forEach(([k,v]) => {
+    if (v) text = text.replaceAll(`{{${k}}}`, v);
+  });
+  if (!text.trim()) return;
+  await navigator.clipboard.writeText(text);
+  copyBtn.classList.add('copy-flash');
+  copyBtn.textContent = '✓ Αντιγράφηκε!';
+  setTimeout(() => { copyBtn.classList.remove('copy-flash'); copyBtn.textContent = 'Copy prompt'; }, 1500);
+};
+
+// ─── SAVE ─────────────────────────────────────────────────────────────────────
+saveBtn.onclick = () => {
+  const text = promptEditor.value.trim();
+  if (!text) return showToast('Δεν υπάρχει prompt για αποθήκευση');
+  const entry = {
+    id: Date.now(),
+    name: state.selectedTpl?.name || 'Custom prompt',
+    text,
+    vars: {...state.vars},
+    cat: state.selectedTpl?.cat || 'gen',
+    time: new Date().toLocaleString('el-GR')
+  };
+  state.history.unshift(entry);
+  if (state.history.length > 100) state.history.pop();
+  localStorage.setItem('promptkit_history', JSON.stringify(state.history));
+  updateHistCount();
+  showToast('✓ Αποθηκεύτηκε στο history');
+};
+
+// ─── CLEAR ────────────────────────────────────────────────────────────────────
+clearBtn.onclick = () => {
+  promptEditor.value = '';
+  state.vars = {};
+  state.selectedTpl = null;
+  varSection.style.display = 'none';
+  selectedName.textContent = 'Επίλεξε template';
+  charCount.textContent = '0';
+  outputBox.innerHTML = '<span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span>';
+  renderTemplates();
+};
+
+// ─── PROMPT EDITOR INPUT ──────────────────────────────────────────────────────
+promptEditor.oninput = updateOutput;
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function updateHistCount() {
+  histCount.textContent = state.history.length;
+}
+
+function renderHistory() {
+  if (!state.history.length) {
+    histList.innerHTML = '<div class="hist-empty">Δεν υπάρχουν αποθηκευμένα prompts</div>';
+    return;
+  }
+  histList.innerHTML = '';
+  state.history.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'hist-item';
+    item.innerHTML = `
+      <div class="hist-item-meta">
+        <span class="hist-item-name">${entry.name}</span>
+        <button class="hist-item-del" data-id="${entry.id}">✕</button>
+      </div>
+      <div class="hist-item-time">${entry.time}</div>
+      <div class="hist-item-preview">${entry.text.slice(0,80)}...</div>`;
+    item.onclick = (e) => {
+      if (e.target.dataset.id) return;
+      promptEditor.value = entry.text;
+      state.vars = {...(entry.vars||{})};
+      // Refill var inputs if template selected
+      varGrid.querySelectorAll('.var-input').forEach(inp => {
+        inp.value = state.vars[inp.dataset.var] || '';
+      });
+      updateOutput();
+      closeHistory();
+    };
+    item.querySelector('.hist-item-del').onclick = (e) => {
+      e.stopPropagation();
+      state.history = state.history.filter(h=>h.id!==entry.id);
+      localStorage.setItem('promptkit_history', JSON.stringify(state.history));
+      updateHistCount();
+      renderHistory();
+    };
+    histList.appendChild(item);
+  });
+}
+
+histBtn.onclick = () => { renderHistory(); histDrawer.classList.add('open'); };
+drawerOverlay.onclick = closeHistory;
+drawerClose.onclick = closeHistory;
+function closeHistory() { histDrawer.classList.remove('open'); }
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ─── PWA INSTALL ──────────────────────────────────────────────────────────────
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'block';
+});
+document.getElementById('install-btn').onclick = async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-btn').style.display = 'none';
+};
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => { document.getElementById('sw-badge').textContent = 'offline ready'; })
+    .catch(() => { document.getElementById('sw-badge').textContent = 'online only'; document.getElementById('sw-badge').classList.remove('online'); });
+}
+
+
+// ─── AI IMPROVE ───────────────────────────────────────────────────────────────
+const aiModal       = document.getElementById('ai-modal');
+const aiModalOverlay= document.getElementById('ai-modal-overlay');
+const aiModalClose  = document.getElementById('ai-modal-close');
+const aiPreviewBox  = document.getElementById('ai-preview-box');
+const aiOpenBtn     = document.getElementById('ai-open-btn');
+const aiCopyBtn     = document.getElementById('ai-copy-btn');
+const aiTabs        = document.querySelectorAll('.ai-tab');
+
+let aiMode = 'improve';
+let aiCurrentText = '';
+
+const AI_META_PROMPTS = {
+  improve: (prompt) => `Είσαι ειδικός στη δημιουργία αποτελεσματικών prompts για LLMs.
+
+Βελτίωσε το παρακάτω prompt ώστε να:
+- Είναι πιο συγκεκριμένο και ξεκάθαρο
+- Δίνει πλαίσιο και context
+- Ορίζει το επιθυμητό format εξόδου
+- Περιλαμβάνει examples αν χρειάζεται
+- Αποφεύγει ασάφειες
+
+PROMPT ΠΡΟΣ ΒΕΛΤΙΩΣΗ:
+---
+${prompt}
+---
+
+Δώσε μου:
+1. Το βελτιωμένο prompt
+2. Σύντομη εξήγηση τι άλλαξες και γιατί`,
+
+  send: (prompt) => prompt,
+
+  explain: (prompt) => `Ανάλυσε το παρακάτω prompt και εξήγησε:
+
+1. Τι στρατηγική χρησιμοποιεί (chain-of-thought, few-shot, role prompting, κ.λπ.)
+2. Τι κάνει καλά
+3. Πιθανές αδυναμίες ή ασάφειες
+4. Πώς θα μπορούσε να βελτιωθεί για διαφορετικά μοντέλα (Claude, GPT-4, κ.λπ.)
+
+PROMPT:
+---
+${prompt}
+---`,
+};
+
+const AI_MODE_LABELS = {
+  improve: 'Βελτίωση prompt',
+  send: 'Αποστολή prompt',
+  explain: 'Εξήγηση στρατηγικής',
+};
+
+function getResolvedPrompt() {
+  let text = promptEditor.value;
+  Object.entries(state.vars).forEach(([k,v]) => {
+    if (v) text = text.replaceAll(`{{${k}}}`, v);
+  });
+  return text.trim();
+}
+
+function buildAiText(mode) {
+  const resolved = getResolvedPrompt();
+  if (!resolved) return '';
+  return AI_META_PROMPTS[mode](resolved);
+}
+
+function highlightAiPreview(text) {
+  if (!text) return '<span style="color:var(--muted);font-style:italic">Δεν υπάρχει prompt για βελτίωση...</span>';
+  const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Highlight the original prompt block
+  return escaped.replace(/(---[\s\S]*?---)/g, '<span class="ai-hl">$1</span>');
+}
+
+function updateAiPreview() {
+  aiCurrentText = buildAiText(aiMode);
+  aiPreviewBox.innerHTML = highlightAiPreview(aiCurrentText);
+}
+
+document.getElementById('improve-btn').onclick = () => {
+  const resolved = getResolvedPrompt();
+  if (!resolved) return showToast('Γράψε πρώτα ένα prompt');
+  updateAiPreview();
+  aiModal.classList.add('open');
+};
+
+aiTabs.forEach(tab => {
+  tab.onclick = () => {
+    aiTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    aiMode = tab.dataset.mode;
+    updateAiPreview();
+    aiOpenBtn.textContent = aiMode === 'send'
+      ? 'Άνοιγμα στο claude.ai ↗'
+      : 'Βελτίωση στο claude.ai ↗';
+  };
+});
+
+function closeAiModal() { aiModal.classList.remove('open'); }
+aiModalOverlay.onclick = closeAiModal;
+aiModalClose.onclick = closeAiModal;
+
+aiOpenBtn.onclick = () => {
+  if (!aiCurrentText) return;
+  const encoded = encodeURIComponent(aiCurrentText);
+  const url = `https://claude.ai/new?q=${encoded}`;
+  window.open(url, '_blank');
+  closeAiModal();
+  showToast('✓ Ανοίχτηκε στο claude.ai');
+};
+
+aiCopyBtn.onclick = async () => {
+  if (!aiCurrentText) return;
+  await navigator.clipboard.writeText(aiCurrentText);
+  aiCopyBtn.textContent = '✓ Αντιγράφηκε!';
+  setTimeout(() => { aiCopyBtn.textContent = 'Copy text'; }, 1500);
+};
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderCats();
+renderTemplates();
+updateHistCount();
+</script>
+</body>
+</html>
