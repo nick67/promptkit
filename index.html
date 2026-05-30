@@ -320,6 +320,76 @@ const CATEGORIES = [
   { id:'gen',   label:'Γενικό',            color:'#a892ff' },
 ];
 
+const HINTS = {
+  // pwa1
+  app_name:         'π.χ. WeatherNow',
+  purpose:          'π.χ. παρακολούθηση καιρού σε πραγματικό χρόνο',
+  theme_color:      'π.χ. #1a1a2e ή #3498db',
+  language:         'π.χ. Ελληνικά',
+  features:         'π.χ. - αναζήτηση πόλης\n- 5ήμερη πρόγνωση\n- dark mode',
+  // pwa2
+  current_code:     'επικόλλησε τον κώδικά σου εδώ',
+  problem:          'π.χ. τα buttons δεν έχουν hover states, φαίνεται παλιό',
+  improvement_1:    'π.χ. προσθέσεις micro-animations στα cards',
+  improvement_2:    'π.χ. βελτιώσεις το typography και το spacing',
+  // pwa3
+  strategy:         'π.χ. cache-first για assets, network-first για API calls',
+  shell_files:      'π.χ. /, /index.html, /app.js, /style.css',
+  dynamic_resources:'π.χ. /api/data, εικόνες χρηστών',
+  // ui1
+  component_type:   'π.χ. modal dialog / dropdown menu / date picker',
+  use_case:         'π.χ. επιλογή ημερομηνίας κράτησης σε booking app',
+  aesthetic:        'π.χ. minimal με sharp edges και monospace font',
+  color_palette:    'π.χ. #0f0f13 bg, #7c6aff accent, #e8e8f0 text',
+  animations:       'π.χ. fade-in 200ms ease, slide-up για dropdown',
+  // ui2
+  dashboard_purpose:'π.χ. παρακολούθηση πωλήσεων e-shop',
+  sections:         'π.χ. KPI cards πάνω, γράφημα πωλήσεων, πίνακας παραγγελιών',
+  data_type:        'π.χ. ημερήσιες πωλήσεις, top προϊόντα, νέοι χρήστες',
+  color_scheme:     'π.χ. dark theme, accent μπλε #3b82f6',
+  mock_data:        'π.χ. [{day:"Δευ", sales:1200}, {day:"Τρι", sales:980}]',
+  desktop_cols:     'π.χ. 3',
+  // dbg1
+  language:         'π.χ. javascript',
+  buggy_code:       'επικόλλησε τον κώδικα με το bug',
+  error_message:    'π.χ. TypeError: Cannot read properties of undefined (reading "map")',
+  environment:      'π.χ. Chrome 124, Node 20, React 18',
+  when_occurs:      'π.χ. όταν το array επιστρέφει κενό από το API',
+  // dbg2
+  slow_code:        'επικόλλησε τον αργό κώδικα',
+  perf_issue:       'π.χ. το re-render γίνεται 60 φορές ανά δευτερόλεπτο',
+  current_metrics:  'π.χ. FPS: 12, LCP: 4.2s, TBT: 800ms',
+  target_metrics:   'π.χ. FPS: 60, LCP < 1.5s, TBT < 200ms',
+  // sim1
+  physics_type:     'π.χ. σφαίρες με βαρύτητα και ελαστικές συγκρούσεις',
+  num_objects:      'π.χ. 80',
+  gravity:          'π.χ. 9.8',
+  friction:         'π.χ. 0.98 (ελαφρά τριβή)',
+  boundaries:       'π.χ. elastic (αναπηδούν στα όρια)',
+  bg_color:         'π.χ. #0f0f13',
+  particle_color:   'π.χ. gradient από #7c6aff σε #3dffc3',
+  trails:           'π.χ. yes, με opacity 0.3',
+  custom_control:   'π.χ. slider για αριθμό σωματιδίων',
+  // sim2
+  data_description: 'π.χ. θερμοκρασία ανά μήνα για 3 πόλεις',
+  chart_type:       'π.χ. line chart με area fill',
+  sample_data:      'π.χ. [{month:"Ιαν", athens:8, london:4, berlin:1}]',
+  color_scheme:     'π.χ. #7c6aff, #3dffc3, #ff7c6a για τις 3 σειρές',
+  axes_labels:      'π.χ. X: Μήνας, Y: Θερμοκρασία (°C)',
+  // sim3
+  game_type:        'π.χ. endless runner / brick breaker / snake',
+  game_mechanics:   'π.χ. ο παίκτης πηδά εμπόδια, επιταχύνεται με το χρόνο',
+  controls:         'π.χ. Space/Tap για άλμα, αριστερά/δεξιά για κίνηση',
+  difficulty:       'π.χ. ξεκινά αργά, αυξάνεται κάθε 10 δευτερόλεπτα',
+  score_system:     'π.χ. +1 ανά δευτερόλεπτο επιβίωσης, bonus για combos',
+  visual_style:     'π.χ. pixel art, neon χρώματα σε μαύρο φόντο',
+  // gen1
+  code:             'επικόλλησε τον κώδικά σου εδώ',
+  // gen2
+  goals:            'π.χ. μείωση duplication, καλύτερη αναγνωσιμότητα, separation of concerns',
+  patterns:         'π.χ. Module, Observer, Factory',
+};
+
 const TEMPLATES = [
   // PWA
   { id:'pwa1', cat:'pwa', name:'New PWA App', desc:'Δημιουργία νέας PWA εφαρμογής από το μηδέν', tags:['pwa','manifest','sw'],
@@ -630,9 +700,10 @@ function selectTemplate(tpl) {
     tpl.vars.forEach(v => {
       const row = document.createElement('div');
       row.className = 'var-row';
+      const hint = HINTS[v] || v.replace(/_/g,' ') + '...';
       row.innerHTML = `
         <label class="var-label">{{${v}}}</label>
-        <input class="var-input" type="text" placeholder="${v.replace(/_/g,' ')}..." data-var="${v}">`;
+        <input class="var-input" type="text" placeholder="${hint}" data-var="${v}">`;
       varGrid.appendChild(row);
     });
     varGrid.querySelectorAll('.var-input').forEach(inp => {
