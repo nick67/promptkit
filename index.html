@@ -12,7 +12,8 @@
 <title>PromptKit</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
+/* DARK THEME */
+[data-theme="dark"]{
   --bg:#0f0f13;
   --bg2:#16161d;
   --bg3:#1e1e28;
@@ -25,13 +26,34 @@
   --accent3:#3dffc3;
   --warn:#ff7c6a;
   --info:#6ab8ff;
+}
+/* LIGHT THEME */
+[data-theme="light"]{
+  --bg:#e8e8f0;
+  --bg2:#f0f0f6;
+  --bg3:#e0e0ec;
+  --line:#d0d0e0;
+  --line2:#b8b8d0;
+  --text:#1a1a2e;
+  --muted:#5a5a80;
+  --accent:#7c6aff;
+  --accent2:#5a48e0;
+  --accent3:#0da870;
+  --warn:#e05a3a;
+  --info:#2a7ad4;
+}
+:root{
   --font-head:'Syne',sans-serif;
   --font-mono:'DM Mono',monospace;
   --r:8px;
   --r2:12px;
 }
-html{font-size:21px;color-scheme:dark}
-body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100dvh;overflow-x:hidden}
+html{font-size:21px}
+/* TRANSITIONS */
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100dvh;overflow-x:hidden;transition:background-color .3s ease,color .3s ease}
+
+/* TRANSITIONS — panels & cards */
+.topbar,.sidebar,.panel,.panel-header,.tpl-card,.var-section,.output-box,.editor-textarea,.var-input,.hist-item,.drawer-panel,.ai-modal-box{transition:background-color .3s ease,border-color .3s ease}
 
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}
@@ -105,9 +127,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .var-input:focus{border-color:var(--accent)}
 .var-row{position:relative}
 .hint-tooltip{position:absolute;left:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--accent);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px 12px;border-radius:var(--r);line-height:1.6;z-index:50;white-space:normal;max-width:420px;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
-.var-row:hover .hint-tooltip{opacity:1;transform:translateY(0)}
+.var-row.hint-active .hint-tooltip{opacity:1;transform:translateY(0)}
 .hint-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);color:var(--muted);font-size:11px;cursor:default;flex-shrink:0;transition:border-color .15s,color .15s}
-.var-row:hover .hint-icon{border-color:var(--accent);color:var(--accent2)}
+.var-row.hint-active .hint-icon{border-color:var(--accent);color:var(--accent2)}
 .editor-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn{padding:9px 16px;border-radius:var(--r);font-family:var(--font-mono);font-size:15px;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;gap:6px}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -200,6 +222,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
     <div class="logo">Prompt<span>Kit</span></div>
     <div class="badge online" id="sw-badge">offline ready</div>
     <div class="topbar-actions">
+      <button id="theme-toggle" title="Εναλλαγή θέματος" style="background:transparent;border:1px solid var(--line2);color:var(--text);font-size:18px;width:36px;height:36px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s">🌙</button>
       <button id="install-btn">↓ Install</button>
     </div>
   </header>
@@ -791,6 +814,26 @@ function selectTemplate(tpl) {
     varGrid.querySelectorAll('.var-input').forEach(inp => {
       inp.oninput = () => { state.vars[inp.dataset.var] = inp.value; updateOutput(); };
     });
+
+    // Tooltip: show on row hover, hide when any input in the grid is focused
+    function isAnyInputFocused() {
+      return [...varGrid.querySelectorAll('.var-input')].some(i => i === document.activeElement);
+    }
+    varGrid.querySelectorAll('.var-row').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        if (!isAnyInputFocused()) row.classList.add('hint-active');
+      });
+      row.addEventListener('mouseleave', () => row.classList.remove('hint-active'));
+    });
+    varGrid.querySelectorAll('.var-input').forEach(inp => {
+      inp.addEventListener('focus', () => {
+        varGrid.querySelectorAll('.var-row').forEach(r => r.classList.remove('hint-active'));
+      });
+      inp.addEventListener('blur', () => {
+        // small delay so mouseleave fires first
+        setTimeout(() => {}, 100);
+      });
+    });
   } else {
     varSection.style.display = 'none';
   }
@@ -1058,6 +1101,21 @@ aiCopyBtn.onclick = async () => {
   aiCopyBtn.textContent = '✓ Αντιγράφηκε!';
   setTimeout(() => { aiCopyBtn.textContent = 'Copy text'; }, 1500);
 };
+
+// ─── THEME TOGGLE ────────────────────────────────────────────────────────────
+(function(){
+  const root = document.documentElement;
+  const btn  = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme') || 'light';
+  function applyTheme(t){
+    root.setAttribute('data-theme', t);
+    root.style.colorScheme = t;
+    btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('theme', t);
+  }
+  applyTheme(saved);
+  btn.onclick = () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+})();
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderCats();
