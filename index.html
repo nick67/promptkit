@@ -58,7 +58,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .tpl-card:active{cursor:grabbing}
 .tpl-card.dragging{opacity:.4;border-style:dashed;transform:scale(.97)}
 .tpl-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
-.tpl-card.hidden-tpl{display:none}
+.tpl-card.hidden-tpl{opacity:.45;border-style:dashed}
 .tpl-card.pinned-tpl{order:-1}
 .card-controls{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .15s;z-index:2}
 .tpl-card:hover .card-controls{opacity:1}
@@ -177,6 +177,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .drawer-close{margin-left:auto;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px}
 .drawer-close:hover{color:var(--text)}
 .hist-list{flex:1;overflow-y:auto;padding:12px}
+.drawer-toolbar{display:flex;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.btn-io{font-size:13px;padding:6px 12px;border-radius:var(--r);font-family:var(--font-mono);cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all .2s;display:flex;align-items:center;gap:5px}
+.btn-io:hover{border-color:var(--accent2);color:var(--text)}
+.btn-io.export{border-color:var(--accent3);color:var(--accent3)}
+.btn-io.export:hover{background:rgba(61,255,195,.08)}
+.btn-io.import{border-color:var(--info);color:var(--info)}
+.btn-io.import:hover{background:rgba(106,184,255,.08)}
+.btn-io.danger{border-color:var(--warn);color:var(--warn)}
+.btn-io.danger:hover{background:rgba(255,124,106,.08)}
 .hist-item{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:12px;margin-bottom:8px;cursor:pointer;transition:all .15s}
 .hist-item:hover{border-color:var(--line2)}
 .hist-item-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -427,6 +436,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
           <div class="editor-actions">
             <button class="btn btn-primary" id="copy-btn">Copy prompt</button>
             <button class="btn btn-success" id="save-btn">Αποθήκευση</button>
+            <button class="btn btn-ghost" id="export-txt-btn">↓ .txt</button>
             <button class="improve-btn" id="improve-btn"><span class="spark">✨</span> Improve with Claude</button>
             <button class="btn btn-ghost" id="clear-btn">Καθαρισμός</button>
           </div>
@@ -443,6 +453,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
     <div class="drawer-head">
       <span class="drawer-title">Prompt History</span>
       <button class="drawer-close" id="drawer-close">✕</button>
+    </div>
+    <div class="drawer-toolbar">
+      <button class="btn-io export" id="export-btn">↓ Export JSON</button>
+      <button class="btn-io import" id="import-btn-trigger">↑ Import JSON</button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none">
+      <button class="btn-io danger" id="clear-history-btn">🗑 Διαγραφή όλων</button>
     </div>
     <div class="hist-list" id="hist-list"></div>
   </div>
@@ -956,7 +972,7 @@ function renderTemplates() {
     card.className = 'tpl-card'
       + (state.selectedTpl?.id===tpl.id ? ' selected' : '')
       + (isPinned ? ' pinned-tpl' : '')
-      + (isHidden ? ' hidden-tpl' : '');
+      + (isHidden && showHidden ? ' hidden-tpl' : '');
     card.dataset.id = tpl.id;
     card.draggable = true;
     card.style.setProperty('--cat-color', catColor);
@@ -1245,6 +1261,29 @@ copyBtn.onclick = async () => {
   setTimeout(() => { copyBtn.classList.remove('copy-flash'); copyBtn.textContent = 'Copy prompt'; }, 1500);
 };
 
+// ─── EXPORT TXT ───────────────────────────────────────────────────────────────
+document.getElementById('export-txt-btn').onclick = () => {
+  let text = promptEditor.value;
+  Object.entries(state.vars).forEach(([k,v]) => {
+    if (v) text = text.replaceAll(`{{${k}}}`, v);
+  });
+  (state.customVars || []).forEach(cv => {
+    if (cv.name && cv.value) text = text.replaceAll(`{{${cv.name}}}`, cv.value);
+  });
+  text += buildExtras();
+  if (!text.trim()) return showToast('Δεν υπάρχει prompt για export');
+  const name = (state.selectedTpl?.name || 'prompt').toLowerCase().replace(/\s+/g,'-');
+  const date = new Date().toISOString().slice(0,10);
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${name}-${date}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Αποθηκεύτηκε ως .txt');
+};
+
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 saveBtn.onclick = () => {
   const text = promptEditor.value.trim();
@@ -1326,6 +1365,59 @@ histBtn.onclick = () => { renderHistory(); histDrawer.classList.add('open'); };
 drawerOverlay.onclick = closeHistory;
 drawerClose.onclick = closeHistory;
 function closeHistory() { histDrawer.classList.remove('open'); }
+
+// ─── EXPORT / IMPORT ──────────────────────────────────────────────────────────
+document.getElementById('export-btn').onclick = () => {
+  if (!state.history.length) return showToast('Δεν υπάρχουν prompts για export');
+  const data = JSON.stringify({ version: 1, exported: new Date().toISOString(), prompts: state.history }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `promptkit-history-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Εξαγωγή ' + state.history.length + ' prompts');
+};
+
+document.getElementById('import-btn-trigger').onclick = () => {
+  document.getElementById('import-file-input').click();
+};
+
+document.getElementById('import-file-input').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      const incoming = parsed.prompts || parsed; // support both formats
+      if (!Array.isArray(incoming)) throw new Error('Μη έγκυρο αρχείο');
+      // Merge: avoid duplicates by id
+      const existingIds = new Set(state.history.map(h => h.id));
+      const newItems = incoming.filter(p => !existingIds.has(p.id));
+      state.history = [...newItems, ...state.history].slice(0, 100);
+      localStorage.setItem('promptkit_history', JSON.stringify(state.history));
+      updateHistCount();
+      renderHistory();
+      showToast('✓ Εισαγωγή ' + newItems.length + ' νέων prompts');
+    } catch(err) {
+      showToast('✗ Σφάλμα: ' + err.message);
+    }
+    e.target.value = ''; // reset so same file can be re-imported
+  };
+  reader.readAsText(file);
+};
+
+document.getElementById('clear-history-btn').onclick = () => {
+  if (!state.history.length) return showToast('Το history είναι ήδη κενό');
+  if (!confirm('Διαγραφή όλων των ' + state.history.length + ' prompts;')) return;
+  state.history = [];
+  localStorage.setItem('promptkit_history', JSON.stringify(state.history));
+  updateHistCount();
+  renderHistory();
+  showToast('🗑 History διαγράφηκε');
+};
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg) {
