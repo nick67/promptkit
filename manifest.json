@@ -2,7 +2,8 @@
   "name": "PromptKit for Claude",
   "short_name": "PromptKit",
   "description": "Δημιουργία και διαχείριση prompts για Claude",
-  "start_url": "/",
+  "start_url": "/promptkit/",
+  "scope": "/promptkit/",
   "display": "standalone",
   "background_color": "#0f0f13",
   "theme_color": "#0f0f13",
@@ -27,12 +28,12 @@
   "shortcuts": [
     {
       "name": "Νέο PWA Prompt",
-      "url": "/?cat=pwa",
+      "url": "/promptkit/?cat=pwa",
       "description": "Άνοιγμα PWA templates"
     },
     {
       "name": "History",
-      "url": "/?view=history",
+      "url": "/promptkit/?view=history",
       "description": "Δες το prompt history"
     }
   ]

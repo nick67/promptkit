@@ -1,8 +1,11 @@
-const CACHE_NAME = 'promptkit-v2';
+const CACHE_NAME = 'promptkit-v3';
+const BASE = '/promptkit';
 const SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.json',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icon-192.svg',
+  BASE + '/icon-512.svg',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap',
 ];
 
@@ -36,7 +39,7 @@ self.addEventListener('fetch', e => {
         return response;
       }).catch(() => {
         if (e.request.destination === 'document') {
-          return caches.match('/index.html');
+          return caches.match(BASE + '/index.html');
         }
       });
     })

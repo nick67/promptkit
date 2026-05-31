@@ -52,6 +52,25 @@ html{font-size:21px}
 /* TRANSITIONS */
 body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100dvh;overflow-x:hidden;transition:background-color .3s ease,color .3s ease}
 
+
+/* CARD CONTROLS */
+.tpl-card{cursor:grab}
+.tpl-card:active{cursor:grabbing}
+.tpl-card.dragging{opacity:.4;border-style:dashed;transform:scale(.97)}
+.tpl-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.tpl-card.hidden-tpl{display:none}
+.tpl-card.pinned-tpl{order:-1}
+.card-controls{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .15s;z-index:2}
+.tpl-card:hover .card-controls{opacity:1}
+.card-btn{background:var(--bg);border:1px solid var(--line2);border-radius:5px;color:var(--muted);cursor:pointer;font-size:13px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s;line-height:1}
+.card-btn:hover{border-color:var(--accent2);color:var(--text)}
+.card-btn.active{border-color:var(--accent);color:var(--accent);background:var(--bg3)}
+.tpl-card.pinned-tpl .card-btn.pin-btn{border-color:var(--accent3);color:var(--accent3)}
+.grid-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.show-hidden-btn{font-size:12px;color:var(--muted);background:transparent;border:1px dashed var(--line2);border-radius:var(--r);padding:3px 10px;cursor:pointer;transition:all .2s;font-family:var(--font-mono)}
+.show-hidden-btn:hover{color:var(--text);border-color:var(--line2)}
+.hidden-count{font-size:11px;color:var(--muted);margin-left:auto}
+
 /* TRANSITIONS — panels & cards */
 .topbar,.sidebar,.panel,.panel-header,.tpl-card,.var-section,.output-box,.editor-textarea,.var-input,.hist-item,.drawer-panel,.ai-modal-box{transition:background-color .3s ease,border-color .3s ease}
 
@@ -103,7 +122,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 
 /* TEMPLATE GRID */
 .template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tpl-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.tpl-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:14px;cursor:grab;transition:all .2s;position:relative;overflow:hidden}
 .tpl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--cat-color,var(--line2));opacity:0;transition:opacity .15s}
 .tpl-card:hover{border-color:var(--line2);background:var(--bg3)}
 .tpl-card:hover::before{opacity:1}
@@ -212,6 +231,45 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
   .sidebar{display:none}
   .panel-area{grid-template-columns:1fr;grid-template-rows:auto 1fr}
 }
+
+/* EXTRAS — expandable sections */
+.extras-area{display:flex;flex-direction:column;gap:6px}
+.extra-section{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;transition:border-color .2s,background-color .3s}
+.extra-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
+.extra-header:hover{background:var(--bg3)}
+.extra-icon{font-size:16px;flex-shrink:0}
+.extra-label{font-family:var(--font-head);font-size:15px;font-weight:600;color:var(--text)}
+.extra-desc{font-size:12px;color:var(--muted);margin-left:auto;margin-right:8px}
+.extra-arrow{font-size:12px;color:var(--muted);transition:transform .2s}
+.extra-section.open .extra-arrow{transform:rotate(90deg)}
+.extra-body{display:none;padding:12px 14px;border-top:1px solid var(--line);flex-direction:column;gap:10px}
+.extra-section.open .extra-body{display:flex}
+.extra-textarea{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:10px 12px;font-family:var(--font-mono);font-size:14px;color:var(--text);resize:vertical;outline:none;min-height:80px;width:100%;line-height:1.6;transition:border-color .2s,background-color .3s}
+.extra-textarea:focus{border-color:var(--accent)}
+.extra-input{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:8px 12px;font-family:var(--font-mono);font-size:14px;color:var(--text);outline:none;width:100%;transition:border-color .2s,background-color .3s}
+.extra-input:focus{border-color:var(--accent)}
+.extra-hint{font-size:12px;color:var(--muted);line-height:1.5}
+/* Custom vars */
+.custom-vars-list{display:flex;flex-direction:column;gap:6px}
+.custom-var-row{display:flex;gap:6px;align-items:center}
+.custom-var-name{width:160px;flex-shrink:0}
+.custom-var-val{flex:1}
+.btn-add-var{background:transparent;border:1px dashed var(--line2);color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:6px 12px;border-radius:var(--r);cursor:pointer;width:100%;transition:all .2s}
+.btn-add-var:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-del-var{background:transparent;border:none;color:var(--warn);cursor:pointer;font-size:16px;padding:2px 6px;flex-shrink:0;opacity:.5;transition:opacity .15s}
+.btn-del-var:hover{opacity:1}
+/* LaTeX */
+.latex-preview{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;font-family:var(--font-mono);font-size:14px;color:var(--accent2);min-height:40px;line-height:1.8;word-break:break-all}
+/* Image upload */
+/* graph builder */
+.graph-vars-list{display:flex;flex-direction:column;gap:8px}
+.graph-var-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center}
+.graph-type-select{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:7px 10px;font-family:var(--font-mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s,background-color .3s;cursor:pointer}
+.graph-type-select:focus{border-color:var(--accent)}
+.graph-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.graph-option{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.graph-option input{accent-color:var(--accent)}
+.extra-section.active-content{border-color:var(--accent2)}
 </style>
 </head>
 <body>
@@ -277,6 +335,92 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
           <div>
             <div class="var-title" style="font-size:14px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'Syne',sans-serif;font-weight:600;margin-bottom:8px">Preview</div>
             <div class="output-box" id="output-box"><span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span></div>
+          </div>
+
+
+          <!-- EXTRAS -->
+          <div class="extras-area" id="extras-area">
+
+            <!-- A: Free text -->
+            <div class="extra-section" data-extra="freetext">
+              <div class="extra-header">
+                <span class="extra-icon">📝</span>
+                <span class="extra-label">Ελεύθερο κείμενο</span>
+                <span class="extra-desc">προσαρτάται στο prompt</span>
+                <span class="extra-arrow">▶</span>
+              </div>
+              <div class="extra-body">
+                <span class="extra-hint">Γράψε οτιδήποτε — θα προστεθεί αυτόματα στο τέλος του prompt.</span>
+                <textarea class="extra-textarea" id="extra-freetext" placeholder="π.χ. Χρησιμοποίησε σχόλια στον κώδικα. Η απάντηση να είναι στα Ελληνικά..."></textarea>
+              </div>
+            </div>
+
+            <!-- B: Link / παράδειγμα -->
+            <div class="extra-section" data-extra="link">
+              <div class="extra-header">
+                <span class="extra-icon">🔗</span>
+                <span class="extra-label">Link παραδείγματος</span>
+                <span class="extra-desc">URL αναφοράς</span>
+                <span class="extra-arrow">▶</span>
+              </div>
+              <div class="extra-body">
+                <span class="extra-hint">Πρόσθεσε URL που δείχνει παράδειγμα, documentation, ή inspiration. Θα συμπεριληφθεί στο prompt ως αναφορά.</span>
+                <input class="extra-input" id="extra-link-url" type="url" placeholder="https://...">
+                <input class="extra-input" id="extra-link-desc" type="text" placeholder="Περιγραφή του link (π.χ. «Physics engine example»)">
+              </div>
+            </div>
+
+            <!-- C: Νόμοι / τύποι -->
+            <div class="extra-section" data-extra="formulas">
+              <div class="extra-header">
+                <span class="extra-icon">⚗️</span>
+                <span class="extra-label">Νόμοι & Τύποι</span>
+                <span class="extra-desc">φυσική, χημεία, μαθηματικά</span>
+                <span class="extra-arrow">▶</span>
+              </div>
+              <div class="extra-body">
+                <span class="extra-hint">Γράψε τύπους σε απλό κείμενο ή LaTeX (π.χ. <code style="color:var(--accent2)">F = ma</code> ή <code style="color:var(--accent2)">E = mc^2</code>). Θα ενσωματωθούν στο prompt ως constraints.</span>
+                <textarea class="extra-textarea" id="extra-formulas" placeholder="π.χ. F = ma&#10;E_k = (1/2)mv^2&#10;PV = nRT&#10;ΔG = ΔH - TΔS"></textarea>
+                <div class="latex-preview" id="latex-preview">— preview —</div>
+              </div>
+            </div>
+
+            <!-- D: Γραφικές παραστάσεις -->
+            <div class="extra-section" data-extra="diagram">
+              <div class="extra-header">
+                <span class="extra-icon">📈</span>
+                <span class="extra-label">Γραφικές παραστάσεις</span>
+                <span class="extra-desc">μεταβλητές προσομοίωσης</span>
+                <span class="extra-arrow">▶</span>
+              </div>
+              <div class="extra-body">
+                <span class="extra-hint">Ορίσε ποιες μεταβλητές της προσομοίωσης θέλεις να βλέπεις σε real-time γράφημα. Το prompt θα ζητά από τον Claude να τις υλοποιήσει αυτόματα.</span>
+                <div class="graph-vars-list" id="graph-vars-list"></div>
+                <button class="btn-add-var" id="add-graph-var">+ Νέα μεταβλητή</button>
+                <div class="graph-options">
+                  <label class="graph-option"><input type="checkbox" id="gopt-realtime" checked> Real-time ενημέρωση</label>
+                  <label class="graph-option"><input type="checkbox" id="gopt-legend" checked> Legend</label>
+                  <label class="graph-option"><input type="checkbox" id="gopt-pause"> Pause/Resume</label>
+                  <label class="graph-option"><input type="checkbox" id="gopt-export"> Export PNG</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- E: Custom vars -->
+            <div class="extra-section" data-extra="customvars">
+              <div class="extra-header">
+                <span class="extra-icon">⚙️</span>
+                <span class="extra-label">Custom παράμετροι</span>
+                <span class="extra-desc">{{var}} δικές σου</span>
+                <span class="extra-arrow">▶</span>
+              </div>
+              <div class="extra-body">
+                <span class="extra-hint">Πρόσθεσε <code style="color:var(--accent2)">{{όνομα}}</code> στο prompt σου και ορίσε την τιμή εδώ.</span>
+                <div class="custom-vars-list" id="custom-vars-list"></div>
+                <button class="btn-add-var" id="add-custom-var">+ Νέα παράμετρος</button>
+              </div>
+            </div>
+
           </div>
 
           <!-- Actions -->
@@ -764,22 +908,104 @@ function renderCats() {
   });
 }
 
+// ─── TEMPLATE PREFS (pin/hide/order) ─────────────────────────────────────────
+const tplPrefs = JSON.parse(localStorage.getItem('promptkit_tplprefs') || '{}');
+// tplPrefs[id] = { pinned: bool, hidden: bool, order: number }
+function saveTplPrefs() { localStorage.setItem('promptkit_tplprefs', JSON.stringify(tplPrefs)); }
+function getPref(id, key, def) { return tplPrefs[id]?.[key] ?? def; }
+function setPref(id, key, val) { if (!tplPrefs[id]) tplPrefs[id]={}; tplPrefs[id][key]=val; saveTplPrefs(); }
+
+let showHidden = false;
+let dragSrcId  = null;
+
 // ─── RENDER TEMPLATES ─────────────────────────────────────────────────────────
 function renderTemplates() {
-  const filtered = state.selectedCat==='all' ? TEMPLATES : TEMPLATES.filter(t=>t.cat===state.selectedCat);
-  tplCountLabel.textContent = filtered.length + ' templates';
+  let filtered = state.selectedCat==='all' ? [...TEMPLATES] : TEMPLATES.filter(t=>t.cat===state.selectedCat);
+
+  // Apply saved order
+  filtered.sort((a,b) => (getPref(a.id,'order',999)) - (getPref(b.id,'order',999)));
+  // Pinned first
+  filtered.sort((a,b) => (getPref(b.id,'pinned',false)?1:0) - (getPref(a.id,'pinned',false)?1:0));
+
+  const hiddenCount = filtered.filter(t => getPref(t.id,'hidden',false)).length;
+  const visible     = showHidden ? filtered : filtered.filter(t => !getPref(t.id,'hidden',false));
+
+  tplCountLabel.textContent = visible.length + ' templates';
   const catColor = CATEGORIES.find(c=>c.id===state.selectedCat)?.color || '#7070a0';
 
   templateGrid.innerHTML = '';
-  filtered.forEach(tpl => {
+
+  // Toolbar
+  const toolbar = document.createElement('div');
+  toolbar.className = 'grid-toolbar';
+  toolbar.style.gridColumn = '1/-1';
+  if (hiddenCount > 0) {
+    toolbar.innerHTML = `
+      <button class="show-hidden-btn" id="show-hidden-btn">
+        ${showHidden ? '🙈 Απόκρυψη' : '👁 Εμφάνιση'} κρυφών
+      </button>
+      <span class="hidden-count">${hiddenCount} κρυφά</span>`;
+    toolbar.querySelector('#show-hidden-btn').onclick = () => { showHidden=!showHidden; renderTemplates(); };
+    templateGrid.appendChild(toolbar);
+  }
+
+  visible.forEach((tpl, idx) => {
+    const isPinned = getPref(tpl.id,'pinned',false);
+    const isHidden = getPref(tpl.id,'hidden',false);
     const card = document.createElement('div');
-    card.className = 'tpl-card' + (state.selectedTpl?.id===tpl.id?' selected':'');
+    card.className = 'tpl-card'
+      + (state.selectedTpl?.id===tpl.id ? ' selected' : '')
+      + (isPinned ? ' pinned-tpl' : '')
+      + (isHidden ? ' hidden-tpl' : '');
+    card.dataset.id = tpl.id;
+    card.draggable = true;
     card.style.setProperty('--cat-color', catColor);
     card.innerHTML = `
-      <div class="tpl-name">${tpl.name}</div>
+      <div class="card-controls">
+        <button class="card-btn pin-btn${isPinned?' active':''}" title="${isPinned?'Ξεκαρφίτσωμα':'Καρφίτσωμα'}">📌</button>
+        <button class="card-btn hide-btn" title="${isHidden?'Εμφάνιση':'Απόκρυψη'}">${isHidden?'👁':'🙈'}</button>
+      </div>
+      <div class="tpl-name">${isPinned?'📌 ':''}${tpl.name}</div>
       <div class="tpl-desc">${tpl.desc}</div>
       <div class="tpl-tags">${tpl.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
-    card.onclick = () => selectTemplate(tpl);
+
+    // Select on click (not on control buttons)
+    card.onclick = (e) => { if (!e.target.closest('.card-controls')) selectTemplate(tpl); };
+
+    // Pin
+    card.querySelector('.pin-btn').onclick = (e) => {
+      e.stopPropagation();
+      setPref(tpl.id, 'pinned', !isPinned);
+      renderTemplates();
+    };
+    // Hide
+    card.querySelector('.hide-btn').onclick = (e) => {
+      e.stopPropagation();
+      setPref(tpl.id, 'hidden', !isHidden);
+      renderTemplates();
+    };
+
+    // Drag & drop
+    card.addEventListener('dragstart', e => {
+      dragSrcId = tpl.id;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (dragSrcId === tpl.id) return;
+      // Swap orders
+      const srcOrder = getPref(dragSrcId,'order', TEMPLATES.findIndex(t=>t.id===dragSrcId));
+      const dstOrder = getPref(tpl.id,    'order', TEMPLATES.findIndex(t=>t.id===tpl.id));
+      setPref(dragSrcId, 'order', dstOrder);
+      setPref(tpl.id,    'order', srcOrder);
+      renderTemplates();
+    });
+
     templateGrid.appendChild(card);
   });
 }
@@ -842,15 +1068,52 @@ function selectTemplate(tpl) {
   renderTemplates();
 }
 
+// ─── BUILD EXTRAS ─────────────────────────────────────────────────────────────
+function buildExtras() {
+  const parts = [];
+  const ft = document.getElementById('extra-freetext').value.trim();
+  if (ft) parts.push('\n\n---\n' + ft);
+  const url  = document.getElementById('extra-link-url').value.trim();
+  const desc = document.getElementById('extra-link-desc').value.trim();
+  if (url) parts.push('\n\nΑναφορά / Παράδειγμα: ' + (desc ? desc + ' — ' : '') + url);
+  const fml = document.getElementById('extra-formulas').value.trim();
+  if (fml) parts.push('\n\nΣχετικοί νόμοι / τύποι:\n' + fml);
+  // Graph vars
+  if (state.graphVars && state.graphVars.length) {
+    const filled = state.graphVars.filter(g => g.name);
+    if (filled.length) {
+      const opts = [];
+      if (document.getElementById('gopt-realtime')?.checked) opts.push('real-time ενημέρωση');
+      if (document.getElementById('gopt-legend')?.checked)   opts.push('legend');
+      if (document.getElementById('gopt-pause')?.checked)    opts.push('pause/resume button');
+      if (document.getElementById('gopt-export')?.checked)   opts.push('export PNG button');
+      const varLines = filled.map(g =>
+        `  - ${g.name}${g.unit ? ' ('+g.unit+')' : ''} → τύπος: ${g.type} chart`
+      ).join('\n');
+      parts.push('\n\nΓραφικές παραστάσεις (real-time):\n' + varLines +
+        (opts.length ? '\nΕπιπλέον: ' + opts.join(', ') : '') +
+        '\nΧρησιμοποίησε Canvas ή SVG, χωρίς εξωτερικές βιβλιοθήκες. Τα γραφήματα να ενημερώνονται σε κάθε frame του simulation loop.');
+    }
+  }
+  return parts.join('');
+}
+
 // ─── UPDATE OUTPUT ────────────────────────────────────────────────────────────
 function updateOutput() {
   let text = promptEditor.value;
   charCount.textContent = text.length;
 
   let rendered = text;
+  // Template vars
   Object.entries(state.vars).forEach(([k,v]) => {
     rendered = rendered.replaceAll(`{{${k}}}`, v || `{{${k}}}`);
   });
+  // Custom vars
+  (state.customVars || []).forEach(cv => {
+    if (cv.name && cv.value) rendered = rendered.replaceAll(`{{${cv.name}}}`, cv.value);
+  });
+  // Extras appended
+  rendered += buildExtras();
 
   // Highlight unfilled vars
   const html = rendered
@@ -860,12 +1123,121 @@ function updateOutput() {
   outputBox.innerHTML = html || '<span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span>';
 }
 
+// ─── EXTRAS ───────────────────────────────────────────────────────────────────
+
+// Accordion toggle
+document.querySelectorAll('.extra-header').forEach(hdr => {
+  hdr.onclick = () => hdr.closest('.extra-section').classList.toggle('open');
+});
+
+// Graph builder
+state.graphVars = [];
+const graphVarsList = document.getElementById('graph-vars-list');
+const GRAPH_TYPES = ['line','bar','scatter','area'];
+
+function renderGraphVars() {
+  graphVarsList.innerHTML = '';
+  state.graphVars.forEach((gv, i) => {
+    const row = document.createElement('div');
+    row.className = 'graph-var-row';
+    row.innerHTML = `
+      <input class="extra-input" placeholder="μεταβλητή (π.χ. velocity)" value="${gv.name}" data-i="${i}" data-role="name">
+      <input class="extra-input" placeholder="μονάδα (π.χ. m/s)" value="${gv.unit}" data-i="${i}" data-role="unit">
+      <select class="graph-type-select" data-i="${i}" data-role="type">
+        ${GRAPH_TYPES.map(t=>`<option value="${t}" ${gv.type===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+      <button class="btn-del-var" data-i="${i}">✕</button>`;
+    row.querySelectorAll('input,select').forEach(el => {
+      el.oninput = el.onchange = () => {
+        state.graphVars[el.dataset.i][el.dataset.role] = el.value;
+        updateOutput();
+      };
+    });
+    row.querySelector('.btn-del-var').onclick = () => {
+      state.graphVars.splice(i,1); renderGraphVars(); updateOutput();
+    };
+    graphVarsList.appendChild(row);
+  });
+}
+
+document.getElementById('add-graph-var').onclick = () => {
+  state.graphVars.push({name:'',unit:'',type:'line'});
+  renderGraphVars();
+  graphVarsList.querySelectorAll('input')[graphVarsList.querySelectorAll('input').length-2]?.focus();
+  document.querySelector('[data-extra="diagram"]').classList.add('open');
+};
+['gopt-realtime','gopt-legend','gopt-pause','gopt-export'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.onchange = updateOutput;
+});
+
+// LaTeX preview (simple text render)
+const formulasTA = document.getElementById('extra-formulas');
+const latexPrev  = document.getElementById('latex-preview');
+formulasTA.oninput = () => {
+  const lines = formulasTA.value.trim().split('\n').filter(Boolean);
+  latexPrev.innerHTML = lines.length
+    ? lines.map(l => `<div>${l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('')
+    : '— preview —';
+  updateOutput();
+};
+
+// Free text & link trigger updateOutput
+['extra-freetext','extra-link-url','extra-link-desc'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.oninput = updateOutput;
+});
+
+// Custom vars
+state.customVars = [];
+state.extras = {};
+const customVarsList = document.getElementById('custom-vars-list');
+
+function renderCustomVars() {
+  customVarsList.innerHTML = '';
+  state.customVars.forEach((cv, i) => {
+    const row = document.createElement('div');
+    row.className = 'custom-var-row';
+    row.innerHTML = `
+      <input class="extra-input custom-var-name" placeholder="όνομα_var" value="${cv.name}" data-i="${i}" data-role="name">
+      <input class="extra-input custom-var-val"  placeholder="τιμή..." value="${cv.value}" data-i="${i}" data-role="val">
+      <button class="btn-del-var" data-i="${i}">✕</button>`;
+    row.querySelectorAll('input').forEach(inp => {
+      inp.oninput = () => {
+        if (inp.dataset.role === 'name')  state.customVars[inp.dataset.i].name  = inp.value.trim();
+        if (inp.dataset.role === 'val')   state.customVars[inp.dataset.i].value = inp.value;
+        updateOutput();
+      };
+    });
+    row.querySelector('.btn-del-var').onclick = () => {
+      state.customVars.splice(i, 1);
+      renderCustomVars();
+      updateOutput();
+    };
+    customVarsList.appendChild(row);
+  });
+}
+
+document.getElementById('add-custom-var').onclick = () => {
+  state.customVars.push({ name: '', value: '' });
+  renderCustomVars();
+  // focus new name input
+  const inputs = customVarsList.querySelectorAll('.custom-var-name');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+  // open section if not open
+  document.querySelector('[data-extra="customvars"]').classList.add('open');
+};
+
 // ─── COPY ─────────────────────────────────────────────────────────────────────
 copyBtn.onclick = async () => {
   let text = promptEditor.value;
   Object.entries(state.vars).forEach(([k,v]) => {
     if (v) text = text.replaceAll(`{{${k}}}`, v);
   });
+  (state.customVars || []).forEach(cv => {
+    if (cv.name && cv.value) text = text.replaceAll(`{{${cv.name}}}`, cv.value);
+  });
+  text += buildExtras();
   if (!text.trim()) return;
   await navigator.clipboard.writeText(text);
   copyBtn.classList.add('copy-flash');
