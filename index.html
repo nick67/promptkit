@@ -295,7 +295,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 /* Image upload */
 /* graph builder */
 .graph-vars-list{display:flex;flex-direction:column;gap:8px}
-.graph-var-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center}
+.graph-var-row{display:flex;flex-direction:column;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:10px 12px;position:relative}
+.graph-var-header{display:flex;align-items:center;gap:6px}
+.graph-var-title{font-family:var(--font-head);font-size:13px;color:var(--accent2);font-weight:600;flex:1}
+.graph-var-axes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.graph-var-actions{display:flex;gap:5px;margin-top:2px}
+.btn-clone-graph{background:transparent;border:1px solid var(--line2);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:var(--r);cursor:pointer;font-family:var(--font-mono);transition:all .15s}
+.btn-clone-graph:hover{border-color:var(--accent2);color:var(--accent2)}
 .graph-type-select{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:7px 10px;font-family:var(--font-mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s,background-color .3s;cursor:pointer}
 .graph-type-select:focus{border-color:var(--accent)}
 .graph-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
@@ -377,87 +383,28 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
           <!-- EXTRAS -->
           <div class="extras-area" id="extras-area">
 
-            <!-- A: Free text -->
-            <div class="extra-section" data-extra="freetext">
-              <div class="extra-header">
-                <span class="extra-icon">📝</span>
-                <span class="extra-label">Ελεύθερο κείμενο</span>
-                <span class="extra-desc">προσαρτάται στο prompt</span>
-                <span class="extra-arrow">▶</span>
-              </div>
-              <div class="extra-body">
-                <span class="extra-hint">Γράψε οτιδήποτε — θα προστεθεί αυτόματα στο τέλος του prompt.</span>
-                <textarea class="extra-textarea" id="extra-freetext" placeholder="π.χ. Χρησιμοποίησε σχόλια στον κώδικα. Η απάντηση να είναι στα Ελληνικά..."></textarea>
-              </div>
-            </div>
-
-            <!-- B: Link / παράδειγμα -->
-            <div class="extra-section" data-extra="link">
-              <div class="extra-header">
-                <span class="extra-icon">🔗</span>
-                <span class="extra-label">Link παραδείγματος</span>
-                <span class="extra-desc">URL αναφοράς</span>
-                <span class="extra-arrow">▶</span>
-              </div>
-              <div class="extra-body">
-                <span class="extra-hint">Πρόσθεσε URL που δείχνει παράδειγμα, documentation, ή inspiration. Θα συμπεριληφθεί στο prompt ως αναφορά.</span>
-                <input class="extra-input" id="extra-link-url" type="url" placeholder="https://...">
-                <input class="extra-input" id="extra-link-desc" type="text" placeholder="Περιγραφή του link (π.χ. «Physics engine example»)">
-              </div>
-            </div>
-
-            <!-- C: Νόμοι / τύποι -->
-            <div class="extra-section" data-extra="formulas">
-              <div class="extra-header">
-                <span class="extra-icon">⚗️</span>
-                <span class="extra-label">Νόμοι & Τύποι</span>
-                <span class="extra-desc">φυσική, χημεία, μαθηματικά</span>
-                <span class="extra-arrow">▶</span>
-              </div>
-              <div class="extra-body">
-                <span class="extra-hint">Γράψε τύπους σε απλό κείμενο ή LaTeX (π.χ. <code style="color:var(--accent2)">F = ma</code> ή <code style="color:var(--accent2)">E = mc^2</code>). Θα ενσωματωθούν στο prompt ως constraints.</span>
-                <textarea class="extra-textarea" id="extra-formulas" placeholder="π.χ. F = ma&#10;E_k = (1/2)mv^2&#10;PV = nRT&#10;ΔG = ΔH - TΔS"></textarea>
-                <div class="latex-preview" id="latex-preview">— preview —</div>
-              </div>
-            </div>
-
             <!-- D: Γραφικές παραστάσεις -->
             <div class="extra-section" data-extra="diagram">
               <div class="extra-header">
                 <span class="extra-icon">📈</span>
                 <span class="extra-label">Γραφικές παραστάσεις</span>
-                <span class="extra-desc">μεταβλητές προσομοίωσης</span>
+                <span class="extra-desc">διαγράμματα προσομοίωσης</span>
                 <span class="extra-arrow">▶</span>
               </div>
               <div class="extra-body">
-                <span class="extra-hint">Ορίσε ποιες μεταβλητές της προσομοίωσης θέλεις να βλέπεις σε real-time γράφημα. Το prompt θα ζητά από τον Claude να τις υλοποιήσει αυτόματα.</span>
+                <span class="extra-hint">Ορίσε διαγράμματα με μεταβλητές για τους άξονες Χ και Υ. Μπορείς να προσθέσεις πολλαπλά ή να κλωνοποιήσεις υπάρχοντα.</span>
                 <div class="graph-vars-list" id="graph-vars-list"></div>
-                <button class="btn-add-var" id="add-graph-var">+ Νέα μεταβλητή</button>
+                <div style="display:flex;gap:6px;margin-top:4px">
+                  <button class="btn-add-var" id="add-graph-var" style="flex:1">+ Νέο διάγραμμα</button>
+                </div>
                 <div class="graph-options">
-                  <label class="graph-option"><input type="checkbox" id="gopt-realtime" checked> Real-time ενημέρωση</label>
+                  <label class="graph-option"><input type="checkbox" id="gopt-realtime" checked> Real-time</label>
                   <label class="graph-option"><input type="checkbox" id="gopt-legend" checked> Legend</label>
                   <label class="graph-option"><input type="checkbox" id="gopt-pause"> Pause/Resume</label>
                   <label class="graph-option"><input type="checkbox" id="gopt-export"> Export PNG</label>
                 </div>
               </div>
             </div>
-
-            <!-- E: Custom vars -->
-            <div class="extra-section" data-extra="customvars">
-              <div class="extra-header">
-                <span class="extra-icon">⚙️</span>
-                <span class="extra-label">Custom παράμετροι</span>
-                <span class="extra-desc">{{var}} δικές σου</span>
-                <span class="extra-arrow">▶</span>
-              </div>
-              <div class="extra-body">
-                <span class="extra-hint">Πρόσθεσε <code style="color:var(--accent2)">{{όνομα}}</code> στο prompt σου και ορίσε την τιμή εδώ.</span>
-                <div class="custom-vars-list" id="custom-vars-list"></div>
-                <button class="btn-add-var" id="add-custom-var">+ Νέα παράμετρος</button>
-              </div>
-            </div>
-
-          </div>
 
           <!-- Actions -->
           <div class="editor-actions">
@@ -1249,8 +1196,6 @@ function selectTemplate(tpl) {
 // ─── BUILD EXTRAS ─────────────────────────────────────────────────────────────
 function buildExtras() {
   const parts = [];
-  const ft = document.getElementById('extra-freetext').value.trim();
-  if (ft) parts.push('\n\n---\n' + ft);
   const url  = document.getElementById('extra-link-url').value.trim();
   const desc = document.getElementById('extra-link-desc').value.trim();
   if (url) parts.push('\n\nΑναφορά / Παράδειγμα: ' + (desc ? desc + ' — ' : '') + url);
@@ -1258,16 +1203,17 @@ function buildExtras() {
   if (fml) parts.push('\n\nΣχετικοί νόμοι / τύποι:\n' + fml);
   // Graph vars
   if (state.graphVars && state.graphVars.length) {
-    const filled = state.graphVars.filter(g => g.name);
+    const filled = state.graphVars.filter(g => g.xVar || g.yVar);
     if (filled.length) {
       const opts = [];
       if (document.getElementById('gopt-realtime')?.checked) opts.push('real-time ενημέρωση');
       if (document.getElementById('gopt-legend')?.checked)   opts.push('legend');
       if (document.getElementById('gopt-pause')?.checked)    opts.push('pause/resume button');
       if (document.getElementById('gopt-export')?.checked)   opts.push('export PNG button');
-      const varLines = filled.map(g =>
-        `  - ${g.name}${g.unit ? ' ('+g.unit+')' : ''} → τύπος: ${g.type} chart`
-      ).join('\n');
+      const varLines = filled.map((g,i) => {
+        const t = g.title ? ` "${g.title}"` : ` #${i+1}`;
+        return `  - Διάγραμμα${t}: Χ=${g.xVar||'?'} / Υ=${g.yVar||'?'} → ${g.type} chart`;
+      }).join('\n');
       parts.push('\n\nΓραφικές παραστάσεις (real-time):\n' + varLines +
         (opts.length ? '\nΕπιπλέον: ' + opts.join(', ') : '') +
         '\nΧρησιμοποίησε Canvas ή SVG, χωρίς εξωτερικές βιβλιοθήκες. Τα γραφήματα να ενημερώνονται σε κάθε frame του simulation loop.');
@@ -1308,41 +1254,70 @@ document.querySelectorAll('.extra-header').forEach(hdr => {
   hdr.onclick = () => hdr.closest('.extra-section').classList.toggle('open');
 });
 
-// Graph builder
+// Graph builder — with X/Y axes and clone
 state.graphVars = [];
 const graphVarsList = document.getElementById('graph-vars-list');
-const GRAPH_TYPES = ['line','bar','scatter','area'];
+const GRAPH_TYPES = ['line','bar','scatter','area','histogram'];
 
 function renderGraphVars() {
   graphVarsList.innerHTML = '';
+  if (!state.graphVars.length) {
+    graphVarsList.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:4px 0">Δεν υπάρχουν διαγράμματα. Πάτα "+ Νέο διάγραμμα".</div>';
+    return;
+  }
   state.graphVars.forEach((gv, i) => {
     const row = document.createElement('div');
     row.className = 'graph-var-row';
     row.innerHTML = `
-      <input class="extra-input" placeholder="μεταβλητή (π.χ. velocity)" value="${gv.name}" data-i="${i}" data-role="name">
-      <input class="extra-input" placeholder="μονάδα (π.χ. m/s)" value="${gv.unit}" data-i="${i}" data-role="unit">
-      <select class="graph-type-select" data-i="${i}" data-role="type">
-        ${GRAPH_TYPES.map(t=>`<option value="${t}" ${gv.type===t?'selected':''}>${t}</option>`).join('')}
-      </select>
-      <button class="btn-del-var" data-i="${i}">✕</button>`;
+      <div class="graph-var-header">
+        <span class="graph-var-title">Διάγραμμα ${i+1}</span>
+        <select class="graph-type-select" data-i="${i}" data-role="type" style="width:auto">
+          ${GRAPH_TYPES.map(t=>`<option value="${t}" ${gv.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <button class="btn-del-var" data-i="${i}" title="Διαγραφή">✕</button>
+      </div>
+      <div class="graph-var-axes">
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Άξονας Χ</div>
+          <input class="extra-input" placeholder="π.χ. time (s)" value="${gv.xVar||''}" data-i="${i}" data-role="xVar">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Άξονας Υ</div>
+          <input class="extra-input" placeholder="π.χ. velocity (m/s)" value="${gv.yVar||''}" data-i="${i}" data-role="yVar">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Τίτλος</div>
+          <input class="extra-input" placeholder="π.χ. Ταχύτητα/Χρόνο" value="${gv.title||''}" data-i="${i}" data-role="title">
+        </div>
+      </div>
+      <div class="graph-var-actions">
+        <button class="btn-clone-graph" data-i="${i}">⧉ Κλωνοποίηση</button>
+      </div>`;
+
     row.querySelectorAll('input,select').forEach(el => {
       el.oninput = el.onchange = () => {
-        state.graphVars[el.dataset.i][el.dataset.role] = el.value;
+        state.graphVars[+el.dataset.i][el.dataset.role] = el.value;
         updateOutput();
       };
     });
     row.querySelector('.btn-del-var').onclick = () => {
       state.graphVars.splice(i,1); renderGraphVars(); updateOutput();
     };
+    row.querySelector('.btn-clone-graph').onclick = () => {
+      const clone = Object.assign({}, state.graphVars[i]);
+      state.graphVars.splice(i+1, 0, clone);
+      renderGraphVars(); updateOutput();
+    };
     graphVarsList.appendChild(row);
   });
 }
 
-document.getElementById('add-graph-var').onclick = () => {
-  state.graphVars.push({name:'',unit:'',type:'line'});
+const addGraphVarBtn = document.getElementById('add-graph-var');
+if (addGraphVarBtn) addGraphVarBtn.onclick = () => {
+  state.graphVars.push({xVar:'',yVar:'',title:'',type:'line'});
   renderGraphVars();
-  graphVarsList.querySelectorAll('input')[graphVarsList.querySelectorAll('input').length-2]?.focus();
-  document.querySelector('[data-extra="diagram"]').classList.add('open');
+  const diagSection = document.querySelector('[data-extra="diagram"]');
+  if (diagSection) diagSection.classList.add('open');
 };
 ['gopt-realtime','gopt-legend','gopt-pause','gopt-export'].forEach(id => {
   const el = document.getElementById(id);
@@ -1352,16 +1327,18 @@ document.getElementById('add-graph-var').onclick = () => {
 // LaTeX preview (simple text render)
 const formulasTA = document.getElementById('extra-formulas');
 const latexPrev  = document.getElementById('latex-preview');
-formulasTA.oninput = () => {
+if (formulasTA) formulasTA.oninput = () => {
   const lines = formulasTA.value.trim().split('\n').filter(Boolean);
-  latexPrev.innerHTML = lines.length
+  if (latexPrev) latexPrev.innerHTML = lines.length
     ? lines.map(l => `<div>${l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('')
     : '— preview —';
   updateOutput();
 };
+// formulasTA listener already set above
+
 
 // Free text & link trigger updateOutput
-['extra-freetext','extra-link-url','extra-link-desc'].forEach(id => {
+['extra-link-url','extra-link-desc'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.oninput = updateOutput;
 });
@@ -1371,6 +1348,9 @@ function renderInlineCustomVars() {
   // Remove previous inline custom section if exists
   const old = varSection.querySelector('.inline-custom-vars');
   if (old) old.remove();
+  // Remove previous inline graph section if exists
+  const oldG = varSection.querySelector('.inline-graph-section');
+  if (oldG) oldG.remove();
 
   const wrapper = document.createElement('div');
   wrapper.className = 'inline-custom-vars';
@@ -1399,6 +1379,74 @@ function renderInlineCustomVars() {
     const inputs = list.querySelectorAll('.custom-var-name');
     if (inputs.length) inputs[inputs.length - 1].focus();
   };
+
+  // ── Inline graph section ──────────────────────────────────────────────────
+  const graphWrap = document.createElement('div');
+  graphWrap.className = 'inline-graph-section';
+  graphWrap.style.cssText = 'margin-top:10px;border-top:1px dashed var(--line2);padding-top:10px;display:flex;flex-direction:column;gap:8px';
+  graphWrap.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="var-title" style="margin-bottom:0">📈 Γραφικές παραστάσεις</div>
+      <button class="btn-add-var" id="inline-add-graph" style="width:auto;padding:4px 10px;font-size:12px">+ Νέο</button>
+    </div>
+    <div id="inline-graph-list"></div>
+    <div class="graph-options" style="margin-top:0">
+      <label class="graph-option"><input type="checkbox" id="gopt-realtime" checked> Real-time</label>
+      <label class="graph-option"><input type="checkbox" id="gopt-legend" checked> Legend</label>
+      <label class="graph-option"><input type="checkbox" id="gopt-pause"> Pause/Resume</label>
+      <label class="graph-option"><input type="checkbox" id="gopt-export"> Export PNG</label>
+    </div>`;
+  varSection.appendChild(graphWrap);
+
+  // Render inline graph list
+  function renderInlineGraphList() {
+    const gl = document.getElementById('inline-graph-list');
+    if (!gl) return;
+    gl.innerHTML = '';
+    if (!state.graphVars.length) {
+      gl.innerHTML = '<div style="font-size:12px;color:var(--muted)">Δεν υπάρχουν διαγράμματα</div>';
+      return;
+    }
+    state.graphVars.forEach((gv, i) => {
+      const row = document.createElement('div');
+      row.className = 'graph-var-row';
+      row.innerHTML = `
+        <div class="graph-var-header">
+          <span class="graph-var-title">Διάγραμμα ${i+1}</span>
+          <select class="graph-type-select" data-i="${i}" data-role="type" style="width:auto">
+            ${['line','bar','scatter','area','histogram'].map(t=>`<option value="${t}" ${gv.type===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+          <button class="btn-del-var" data-i="${i}">✕</button>
+        </div>
+        <div class="graph-var-axes">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Άξονας Χ</div>
+            <input class="extra-input" placeholder="π.χ. time (s)" value="${gv.xVar||''}" data-i="${i}" data-role="xVar"></div>
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Άξονας Υ</div>
+            <input class="extra-input" placeholder="π.χ. velocity (m/s)" value="${gv.yVar||''}" data-i="${i}" data-role="yVar"></div>
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Τίτλος</div>
+            <input class="extra-input" placeholder="π.χ. Ταχύτητα/Χρόνο" value="${gv.title||''}" data-i="${i}" data-role="title"></div>
+        </div>
+        <div class="graph-var-actions">
+          <button class="btn-clone-graph" data-i="${i}">⧉ Κλωνοποίηση</button>
+        </div>`;
+      row.querySelectorAll('input,select').forEach(el => {
+        el.oninput = el.onchange = () => { state.graphVars[+el.dataset.i][el.dataset.role] = el.value; updateOutput(); };
+      });
+      row.querySelector('.btn-del-var').onclick = () => { state.graphVars.splice(i,1); renderInlineGraphList(); updateOutput(); };
+      row.querySelector('.btn-clone-graph').onclick = () => { state.graphVars.splice(i+1,0,Object.assign({},gv)); renderInlineGraphList(); updateOutput(); };
+      gl.appendChild(row);
+    });
+  }
+  renderInlineGraphList();
+
+  document.getElementById('inline-add-graph').onclick = () => {
+    state.graphVars.push({xVar:'',yVar:'',title:'',type:'line'});
+    renderInlineGraphList(); updateOutput();
+  };
+  ['gopt-realtime','gopt-legend','gopt-pause','gopt-export'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.onchange = updateOutput;
+  });
 }
 
 function renderInlineCustomList() {
@@ -1430,11 +1478,11 @@ function renderInlineCustomList() {
 // Custom vars
 state.customVars = [];
 state.extras = {};
-const customVarsList = document.getElementById('custom-vars-list');
+const customVarsList = document.getElementById('custom-vars-list'); // may be null
 
 function renderCustomVars() {
   renderInlineCustomList();
-  customVarsList.innerHTML = '';
+  if (!customVarsList) return;
   state.customVars.forEach((cv, i) => {
     const row = document.createElement('div');
     row.className = 'custom-var-row';
@@ -1458,13 +1506,15 @@ function renderCustomVars() {
   });
 }
 
-document.getElementById('add-custom-var').onclick = () => {
+const addCustomVarBtn = document.getElementById('add-custom-var');
+if (addCustomVarBtn) addCustomVarBtn.onclick = () => {
   state.customVars.push({ name: '', value: '' });
   renderCustomVars();
   renderInlineCustomList();
   const inputs = customVarsList.querySelectorAll('.custom-var-name');
   if (inputs.length) inputs[inputs.length - 1].focus();
-  document.querySelector('[data-extra="customvars"]').classList.add('open');
+  const cvSection = document.querySelector('[data-extra="customvars"]');
+  if (cvSection) cvSection.classList.add('open');
 };
 
 // ─── COPY ─────────────────────────────────────────────────────────────────────
