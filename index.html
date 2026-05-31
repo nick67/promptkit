@@ -80,7 +80,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
 
 /* LAYOUT */
-.app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:64px 1fr;height:100dvh;overflow:hidden}
+.app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:64px 1fr;height:100dvh;overflow:hidden;transition:grid-template-columns .25s ease}
+.app.sidebar-collapsed{grid-template-columns:48px 1fr}
 
 /* TOPBAR */
 .topbar{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--bg2)}
@@ -93,7 +94,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 #install-btn:hover{opacity:.85}
 
 /* SIDEBAR */
-.sidebar{background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.sidebar{background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:width .25s ease;position:relative}
+.sidebar-content{flex:1;display:flex;flex-direction:column;overflow:hidden;transition:opacity .2s}
+.app.sidebar-collapsed .sidebar-content{opacity:0;pointer-events:none}
+.sidebar-toggle{position:absolute;top:10px;right:-14px;width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:10;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.sidebar-toggle:hover{border-color:var(--accent);color:var(--accent2);background:var(--bg3)}
+.app.sidebar-collapsed .sidebar-toggle{right:-14px}
+.sidebar-collapsed-icons{display:none;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+.app.sidebar-collapsed .sidebar-collapsed-icons{display:flex}
+.collapsed-cat-btn{width:36px;height:36px;border-radius:var(--r);background:transparent;border:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;position:relative}
+.collapsed-cat-btn:hover{background:var(--bg3);border-color:var(--line2)}
+.collapsed-cat-btn.active{background:var(--bg3);border-color:var(--accent)}
+.collapsed-cat-btn .cat-tooltip{position:absolute;left:44px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r);padding:4px 10px;font-size:13px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;font-family:var(--font-mono);z-index:20}
+.collapsed-cat-btn:hover .cat-tooltip{opacity:1}
 .sidebar-section{padding:14px 16px 10px;font-size:15px;letter-spacing:.12em;color:var(--muted);font-family:var(--font-head);font-weight:600;text-transform:uppercase}
 .cat-list{list-style:none;padding:0 8px}
 .cat-item{padding:9px 12px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:10px;font-size:17px;color:var(--muted);transition:all .15s;border:1px solid transparent}
@@ -225,6 +238,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .ai-preview-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:15px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow-y:auto}
 .ai-preview-box .ai-hl{color:var(--accent3)}
 .ai-modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.paste-back-area{display:none;flex-direction:column;gap:8px;padding:12px 14px;border-top:1px solid var(--line);background:var(--bg)}
+.paste-back-area.visible{display:flex}
+.paste-back-label{font-size:13px;color:var(--accent3);font-family:var(--font-head);font-weight:600;display:flex;align-items:center;gap:6px}
+.paste-back-textarea{background:var(--bg3);border:1px solid var(--accent3);border-radius:var(--r2);padding:12px;font-family:var(--font-mono);font-size:13px;color:var(--text);resize:vertical;min-height:120px;outline:none;line-height:1.6;width:100%;transition:border-color .2s}
+.paste-back-textarea:focus{border-color:var(--accent)}
+.paste-back-actions{display:flex;gap:8px}
+.btn-paste-use{background:var(--accent3);border:none;color:#000;font-family:var(--font-mono);font-size:13px;font-weight:600;padding:8px 16px;border-radius:var(--r);cursor:pointer;transition:opacity .15s}
+.btn-paste-use:hover{opacity:.85}
+.btn-paste-cancel{background:transparent;border:1px solid var(--line2);color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:var(--r);cursor:pointer;transition:all .15s}
+.btn-paste-cancel:hover{color:var(--text);border-color:var(--text)}
 .btn-ai{background:linear-gradient(135deg,#7c6aff,#a892ff);border:none;color:#fff;font-family:var(--font-mono);font-size:17px;padding:10px 20px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:7px;transition:opacity .15s;font-weight:500}
 .btn-ai:hover{opacity:.88}
 .btn-ai:active{transform:scale(.97)}
@@ -296,15 +319,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-section">Κατηγορίες</div>
-    <ul class="cat-list" id="cat-list"></ul>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-bottom">
-      <button class="history-toggle" id="hist-btn">
-        <span>📋</span> History
-        <span id="hist-count" class="cat-count">0</span>
-      </button>
+    <button class="sidebar-toggle" id="sidebar-toggle" title="Σύμπτυξη/Ανάπτυξη">‹</button>
+    <div class="sidebar-content">
+      <div class="sidebar-section">Κατηγορίες</div>
+      <ul class="cat-list" id="cat-list"></ul>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-bottom">
+        <button class="history-toggle" id="hist-btn">
+          <span>📋</span> History
+          <span id="hist-count" class="cat-count">0</span>
+        </button>
+      </div>
     </div>
+    <div class="sidebar-collapsed-icons" id="collapsed-icons"></div>
   </aside>
 
   <!-- MAIN -->
@@ -491,6 +518,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
       <button class="btn-ai-secondary" id="ai-copy-btn">Copy text</button>
       <button class="btn-ai" id="ai-open-btn">Άνοιγμα στο claude.ai ↗</button>
     </div>
+    <div class="paste-back-area" id="paste-back-area">
+      <div class="paste-back-label">↩ Επικόλλησε το βελτιωμένο prompt από το claude.ai</div>
+      <textarea class="paste-back-textarea" id="paste-back-textarea" placeholder="Αντίγραψε την απάντηση του Claude και επικόλλησέ την εδώ..."></textarea>
+      <div class="paste-back-actions">
+        <button class="btn-paste-use" id="paste-use-btn">✓ Χρήση ως νέο prompt</button>
+        <button class="btn-paste-cancel" id="paste-cancel-btn">Ακύρωση</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -509,6 +544,14 @@ const CATEGORIES = [
 ];
 
 const HINTS = {
+  // context (shared)
+  app_description: 'π.χ. Εκπαιδευτικό εργαλείο για οπτικοποίηση νόμων κίνησης του Newton',
+  user_role:       'π.χ. μαθητής που πειραματίζεται, δάσκαλος που επιδεικνύει, ερευνητής',
+  target_audience: 'π.χ. μαθητές Γυμνασίου/Λυκείου, φοιτητές φυσικής, γενικό κοινό',
+  // physics extra
+  mass:            'π.χ. 1.0 kg (ή εύρος 0.1–10 kg με slider)',
+  air_resistance:  'π.χ. 0.01 (drag coefficient) ή 0 για κενό',
+  initial_velocity:'π.χ. vx=5 m/s, vy=0 m/s ή τυχαία',
   // pwa1
   app_name:         'π.χ. WeatherNow',
   purpose:          'π.χ. παρακολούθηση καιρού σε πραγματικό χρόνο',
@@ -584,6 +627,7 @@ const HINTS = {
   bio_params:       'π.χ. ρυθμός μετάδοσης β=0.3, ρυθμός ανάρρωσης γ=0.1',
   bio_visual:       'π.χ. κόκκινα=μολυσμένα, πράσινα=υγιή, γκρι=ανοσοποιημένα',
   bio_controls:     'π.χ. slider πληθυσμού, ρυθμός μετάδοσης, κουμπί reset',
+  extra_instructions: 'π.χ. Πρόσθεσε ήχους, χρησιμοποίησε dark theme, εμφάνισε FPS counter...',
   // gen1
   code:             'επικόλλησε τον κώδικά σου εδώ',
   // gen2
@@ -594,7 +638,11 @@ const HINTS = {
 const TEMPLATES = [
   // PWA
   { id:'pwa1', cat:'pwa', name:'New PWA App', desc:'Δημιουργία νέας PWA εφαρμογής από το μηδέν', tags:['pwa','manifest','sw'],
-    template:`Δημιούργησε μια πλήρη PWA εφαρμογή με τίτλο "{{app_name}}" για {{purpose}}.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Δημιούργησε μια πλήρη PWA εφαρμογή με τίτλο "{{app_name}}" για {{purpose}}.
 
 Απαιτήσεις:
 - Αρχεία: index.html, manifest.json, sw.js
@@ -611,10 +659,14 @@ const TEMPLATES = [
 - Αποθήκευση δεδομένων στο localStorage
 - Εμφανής "install" κουμπί όταν είναι διαθέσιμο
 - Εξήγησε κάθε τμήμα κώδικα με σχόλια`,
-    vars:['app_name','purpose','theme_color','language','features'] },
+    vars:['app_description','user_role','target_audience','app_name','purpose','theme_color','language','features'] },
 
   { id:'pwa2', cat:'pwa', name:'Βελτίωση UI', desc:'Αναβάθμιση υπάρχουσας εφαρμογής', tags:['refactor','css','ux'],
-    template:`Βελτίωσε το UI της παρακάτω εφαρμογής.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Βελτίωσε το UI της παρακάτω εφαρμογής.
 
 **HTML:**
 \`\`\`html
@@ -636,10 +688,14 @@ const TEMPLATES = [
 - Χρησιμοποιήσεις CSS variables για consistency
 
 Δώσε μου το αποτέλεσμα σε ξεχωριστά blocks HTML και CSS.`,
-    vars:['current_html','current_css','problem','improvement_1','improvement_2'] },
+    vars:['app_description','user_role','target_audience','current_html','current_css','problem','improvement_1','improvement_2'] },
 
   { id:'pwa3', cat:'pwa', name:'Service Worker', desc:'Ρύθμιση SW με caching στρατηγική', tags:['sw','cache','offline'],
-    template:`Γράψε ένα Service Worker για PWA με:
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Γράψε ένα Service Worker για PWA με:
 
 Στρατηγική: {{strategy}}
 App Shell files: {{shell_files}}
@@ -652,11 +708,15 @@ Dynamic cache: {{dynamic_resources}}
 - Fallback page για offline
 
 Προσθέσε console.log με emoji για κάθε σημαντικό event.`,
-    vars:['strategy','shell_files','dynamic_resources'] },
+    vars:['app_description','user_role','target_audience','strategy','shell_files','dynamic_resources'] },
 
   // UI/UX
   { id:'ui1', cat:'ui', name:'Component Design', desc:'Σχεδίαση UI component με HTML/CSS', tags:['component','css','html'],
-    template:`Σχεδίασε ένα {{component_type}} component για {{use_case}}.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Σχεδίασε ένα {{component_type}} component για {{use_case}}.
 
 Aesthetic: {{aesthetic}} (π.χ. minimal, brutalist, glassmorphism, retro)
 Χρωματική παλέτα: {{color_palette}}
@@ -671,10 +731,14 @@ Aesthetic: {{aesthetic}} (π.χ. minimal, brutalist, glassmorphism, retro)
 Δώσε μου επίσης:
 1. Εναλλακτικές παραλλαγές (variant states)
 2. CSS design tokens σε σχόλια`,
-    vars:['component_type','use_case','aesthetic','color_palette','animations'] },
+    vars:['app_description','user_role','target_audience','component_type','use_case','aesthetic','color_palette','animations'] },
 
   { id:'ui2', cat:'ui', name:'Dashboard Layout', desc:'Δημιουργία dashboard με panels', tags:['dashboard','grid','data'],
-    template:`Φτιάξε ένα dashboard για {{dashboard_purpose}} με:
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Φτιάξε ένα dashboard για {{dashboard_purpose}} με:
 
 Sections:
 {{sections}}
@@ -687,11 +751,15 @@ Color scheme: {{color_scheme}}
 - Χρήση της παρακάτω mock data: {{mock_data}}
 - Responsive: mobile (1 col) → tablet (2 col) → desktop ({{desktop_cols}} cols)
 - Animated entry για τα cards (stagger effect)`,
-    vars:['dashboard_purpose','sections','data_type','color_scheme','mock_data','desktop_cols'] },
+    vars:['app_description','user_role','target_audience','dashboard_purpose','sections','data_type','color_scheme','mock_data','desktop_cols'] },
 
   // Debugging
   { id:'dbg1', cat:'debug', name:'Bug Analysis', desc:'Ανάλυση και διόρθωση bug', tags:['bug','fix','analysis'],
-    template:`Εντόπισε και διόρθωσε το παρακάτω πρόβλημα:
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Εντόπισε και διόρθωσε το παρακάτω πρόβλημα:
 
 **Κώδικας:**
 \`\`\`{{language}}
@@ -709,10 +777,14 @@ Color scheme: {{color_scheme}}
 2. Διορθωμένο κώδικα
 3. Πώς να αποφύγω παρόμοια bugs στο μέλλον
 4. Αν υπάρχουν άλλα πιθανά προβλήματα στον κώδικα, ανέφερέ τα`,
-    vars:['language','buggy_code','error_message','environment','when_occurs'] },
+    vars:['app_description','user_role','target_audience','language','buggy_code','error_message','environment','when_occurs'] },
 
   { id:'dbg2', cat:'debug', name:'Performance Fix', desc:'Βελτίωση απόδοσης κώδικα', tags:['performance','optimize','profiling'],
-    template:`Βελτίωσε την απόδοση του παρακάτω κώδικα:
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Βελτίωσε την απόδοση του παρακάτω κώδικα:
 
 \`\`\`{{language}}
 {{slow_code}}
@@ -729,15 +801,22 @@ Color scheme: {{color_scheme}}
 - Caching opportunities
 
 Δώσε optimized version με σχόλια για κάθε αλλαγή.`,
-    vars:['language','slow_code','perf_issue','current_metrics','target_metrics'] },
+    vars:['app_description','user_role','target_audience','language','slow_code','perf_issue','current_metrics','target_metrics'] },
 
   // Simulations
   { id:'sim1', cat:'sim', name:'Physics Simulation', desc:'2D φυσική προσομοίωση με Canvas', tags:['physics','canvas','simulation'],
-    template:`Δημιούργησε μια 2D προσομοίωση {{physics_type}} με HTML Canvas.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Δημιούργησε μια 2D προσομοίωση {{physics_type}} με HTML Canvas.
 
 Παράμετροι:
 - Αριθμός αντικειμένων: {{num_objects}}
+- Μάζα αντικειμένων: {{mass}}
 - Gravity: {{gravity}} (π.χ. 9.8, 0, custom)
+- Αντίσταση αέρα (drag): {{air_resistance}}
+- Αρχική ταχύτητα: {{initial_velocity}}
 - Friction: {{friction}}
 - Boundaries: {{boundaries}} (elastic/absorb/wrap)
 - FPS target: 60
@@ -754,11 +833,18 @@ Controls (sliders/buttons):
 - {{custom_control}}
 
 Χρήση requestAnimationFrame, χωρίς εξωτερικές βιβλιοθήκες.
-Εξήγησε τους τύπους φυσικής που χρησιμοποιείς.`,
-    vars:['physics_type','num_objects','gravity','friction','boundaries','bg_color','particle_color','trails','custom_control'] },
+Εξήγησε τους τύπους φυσικής που χρησιμοποιείς.
+
+Επιπλέον οδηγίες:
+{{extra_instructions}}`,
+    vars:['app_description','user_role','target_audience','physics_type','num_objects','mass','air_resistance','initial_velocity','gravity','friction','boundaries','bg_color','particle_color','trails','custom_control','extra_instructions'] },
 
   { id:'sim2', cat:'sim', name:'Data Visualization', desc:'Interactive γράφημα με SVG/Canvas', tags:['chart','svg','data-viz'],
-    template:`Φτιάξε interactive visualization για {{data_description}}.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Φτιάξε interactive visualization για {{data_description}}.
 
 Τύπος γραφήματος: {{chart_type}}
 Mock data: {{sample_data}}
@@ -772,11 +858,18 @@ Features:
 
 Χρώματα: {{color_scheme}}
 Axes: {{axes_labels}}
-Χωρίς Chart.js ή D3 - pure SVG/Canvas.`,
-    vars:['data_description','chart_type','sample_data','color_scheme','axes_labels'] },
+Χωρίς Chart.js ή D3 - pure SVG/Canvas.
+
+Επιπλέον οδηγίες:
+{{extra_instructions}}`,
+    vars:['app_description','user_role','target_audience','data_description','chart_type','sample_data','color_scheme','axes_labels','extra_instructions'] },
 
   { id:'sim3', cat:'sim', name:'Game / Interactive', desc:'Απλό game ή interactive demo', tags:['game','canvas','interactive'],
-    template:`Φτιάξε {{game_type}} game/demo με HTML Canvas.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Φτιάξε {{game_type}} game/demo με HTML Canvas.
 
 Mechanics:
 {{game_mechanics}}
@@ -792,11 +885,18 @@ Sound: χωρίς (μόνο visual feedback)
 - Game loop με requestAnimationFrame
 - State machine (menu → playing → game over)
 - Mobile support (touch events)
-- High score στο localStorage`,
-    vars:['game_type','game_mechanics','controls','difficulty','score_system','visual_style'] },
+- High score στο localStorage
+
+Επιπλέον οδηγίες:
+{{extra_instructions}}`,
+    vars:['app_description','user_role','target_audience','game_type','game_mechanics','controls','difficulty','score_system','visual_style','extra_instructions'] },
 
   { id:'sim4', cat:'sim', name:'Chemistry Simulation', desc:'Προσομοίωση χημικής αντίδρασης με μόρια', tags:['chemistry','molecules','canvas'],
-    template:`Δημιούργησε interactive προσομοίωση χημικής αντίδρασης με HTML Canvas.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Δημιούργησε interactive προσομοίωση χημικής αντίδρασης με HTML Canvas.
 
 Αντίδραση: {{reaction_type}}
 Μόρια: {{molecules}}
@@ -817,11 +917,18 @@ Controls:
 Τεχνικά:
 - Pure HTML/CSS/JS, requestAnimationFrame
 - Collision detection μεταξύ μορίων
-- Εξήγησε τη χημεία πίσω από την αντίδραση σε σχόλια`,
-    vars:['reaction_type','molecules','chem_visual','chem_controls','chem_detail'] },
+- Εξήγησε τη χημεία πίσω από την αντίδραση σε σχόλια
+
+Επιπλέον οδηγίες:
+{{extra_instructions}}`,
+    vars:['app_description','user_role','target_audience','reaction_type','molecules','chem_visual','chem_controls','chem_detail','extra_instructions'] },
 
   { id:'sim5', cat:'sim', name:'Βιολογικό Μοντέλο', desc:'Προσομοίωση βιολογικής διεργασίας', tags:['biology','simulation','model'],
-    template:`Δημιούργησε interactive βιολογική προσομοίωση με HTML Canvas.
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Δημιούργησε interactive βιολογική προσομοίωση με HTML Canvas.
 
 Τύπος: {{bio_type}}
 Οργανισμός / μονάδα: {{organism}}
@@ -841,12 +948,19 @@ Controls:
 Τεχνικά:
 - Pure HTML/CSS/JS, χωρίς βιβλιοθήκες
 - Το μοντέλο υπολογίζεται με διαφορικές εξισώσεις (Euler method, dt=0.1)
-- Εξήγησε τη βιολογία / μαθηματικά του μοντέλου σε σχόλια`,
-    vars:['bio_type','organism','bio_params','bio_visual','bio_controls'] },
+- Εξήγησε τη βιολογία / μαθηματικά του μοντέλου σε σχόλια
+
+Επιπλέον οδηγίες:
+{{extra_instructions}}`,
+    vars:['app_description','user_role','target_audience','bio_type','organism','bio_params','bio_visual','bio_controls','extra_instructions'] },
 
   // General
   { id:'gen1', cat:'gen', name:'Code Review', desc:'Αναλυτικό code review', tags:['review','quality','best-practices'],
-    template:`Κάνε αναλυτικό code review στον παρακάτω κώδικα:
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Κάνε αναλυτικό code review στον παρακάτω κώδικα:
 
 \`\`\`{{language}}
 {{code}}
@@ -860,10 +974,14 @@ Controls:
 5. Best practices για {{language}}
 
 Βαθμολόγησε το 1-10 σε κάθε κατηγορία και δώσε actionable suggestions.`,
-    vars:['language','code'] },
+    vars:['app_description','user_role','target_audience','language','code'] },
 
   { id:'gen2', cat:'gen', name:'Refactor', desc:'Ανακατασκευή κώδικα', tags:['refactor','clean-code'],
-    template:`Ανακατασκεύασε τον παρακάτω κώδικα:
+    template:`Περιγραφή εφαρμογής: {{app_description}}
+Ρόλος χρήστη: {{user_role}}
+Κοινό: {{target_audience}}
+
+Ανακατασκεύασε τον παρακάτω κώδικα:
 
 \`\`\`{{language}}
 {{code}}
@@ -879,7 +997,7 @@ Controls:
 - Προσθήκη JSDoc/comments όπου χρειάζεται
 
 Εξήγησε κάθε αλλαγή που κάνεις.`,
-    vars:['language','code','goals','patterns'] },
+    vars:['app_description','user_role','target_audience','language','code','goals','patterns'] },
 ];
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -910,6 +1028,47 @@ const histList     = document.getElementById('hist-list');
 const drawerOverlay= document.getElementById('drawer-overlay');
 const drawerClose  = document.getElementById('drawer-close');
 const toast        = document.getElementById('toast');
+
+// ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
+const appEl          = document.querySelector('.app');
+const sidebarToggle  = document.getElementById('sidebar-toggle');
+const collapsedIcons = document.getElementById('collapsed-icons');
+let sidebarCollapsed = localStorage.getItem('promptkit_sidebar') === 'collapsed';
+const CAT_ICONS = { all:'🔷', pwa:'⚡', ui:'🎨', debug:'🐛', sim:'🔬', gen:'📄' };
+
+function applySidebarState() {
+  if (sidebarCollapsed) {
+    appEl.classList.add('sidebar-collapsed');
+    sidebarToggle.textContent = '›';
+    sidebarToggle.title = 'Ανάπτυξη';
+    renderCollapsedIcons();
+  } else {
+    appEl.classList.remove('sidebar-collapsed');
+    sidebarToggle.textContent = '‹';
+    sidebarToggle.title = 'Σύμπτυξη';
+    collapsedIcons.innerHTML = '';
+  }
+  localStorage.setItem('promptkit_sidebar', sidebarCollapsed ? 'collapsed' : 'expanded');
+}
+
+function renderCollapsedIcons() {
+  collapsedIcons.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'collapsed-cat-btn' + (state.selectedCat === cat.id ? ' active' : '');
+    btn.innerHTML = `${CAT_ICONS[cat.id] || '•'}<span class="cat-tooltip">${cat.label}</span>`;
+    btn.onclick = () => { state.selectedCat = cat.id; renderCollapsedIcons(); renderTemplates(); };
+    collapsedIcons.appendChild(btn);
+  });
+  const histIcon = document.createElement('button');
+  histIcon.className = 'collapsed-cat-btn';
+  histIcon.innerHTML = `📋<span class="cat-tooltip">History</span>`;
+  histIcon.onclick = () => { renderHistory(); histDrawer.classList.add('open'); };
+  collapsedIcons.appendChild(histIcon);
+}
+
+sidebarToggle.onclick = () => { sidebarCollapsed = !sidebarCollapsed; applySidebarState(); };
+applySidebarState();
 
 // ─── RENDER CATEGORIES ────────────────────────────────────────────────────────
 function renderCats() {
@@ -1076,6 +1235,9 @@ function selectTemplate(tpl) {
         setTimeout(() => {}, 100);
       });
     });
+
+    // Render custom vars inline at the bottom of var-section
+    renderInlineCustomVars();
   } else {
     varSection.style.display = 'none';
   }
@@ -1204,12 +1366,74 @@ formulasTA.oninput = () => {
   if (el) el.oninput = updateOutput;
 });
 
+// ─── INLINE CUSTOM VARS ───────────────────────────────────────────────────────
+function renderInlineCustomVars() {
+  // Remove previous inline custom section if exists
+  const old = varSection.querySelector('.inline-custom-vars');
+  if (old) old.remove();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'inline-custom-vars';
+  wrapper.style.cssText = 'margin-top:10px;border-top:1px dashed var(--line2);padding-top:10px;display:flex;flex-direction:column;gap:6px';
+
+  const head = document.createElement('div');
+  head.style.cssText = 'display:flex;align-items:center;justify-content:space-between';
+  head.innerHTML = `
+    <div class="var-title" style="margin-bottom:0">⚙ Custom παράμετροι</div>
+    <button class="btn-add-var" id="inline-add-var" style="width:auto;padding:4px 10px;font-size:12px">+ Νέα</button>`;
+  wrapper.appendChild(head);
+
+  const list = document.createElement('div');
+  list.id = 'inline-custom-list';
+  list.style.cssText = 'display:flex;flex-direction:column;gap:6px';
+  wrapper.appendChild(list);
+
+  varSection.appendChild(wrapper);
+
+  renderInlineCustomList();
+
+  document.getElementById('inline-add-var').onclick = () => {
+    state.customVars.push({ name: '', value: '' });
+    renderInlineCustomList();
+    updateOutput();
+    const inputs = list.querySelectorAll('.custom-var-name');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  };
+}
+
+function renderInlineCustomList() {
+  const list = document.getElementById('inline-custom-list');
+  if (!list) return;
+  list.innerHTML = '';
+  state.customVars.forEach((cv, i) => {
+    const row = document.createElement('div');
+    row.className = 'custom-var-row';
+    row.innerHTML = `
+      <input class="extra-input custom-var-name" placeholder="όνομα_var" value="${cv.name}" data-i="${i}" data-role="name">
+      <input class="extra-input custom-var-val"  placeholder="τιμή..." value="${cv.value}" data-i="${i}" data-role="val">
+      <button class="btn-del-var" data-i="${i}">✕</button>`;
+    row.querySelectorAll('input').forEach(inp => {
+      inp.oninput = () => {
+        state.customVars[inp.dataset.i][inp.dataset.role === 'name' ? 'name' : 'value'] = inp.value.trim ? inp.value.trim() : inp.value;
+        updateOutput();
+      };
+    });
+    row.querySelector('.btn-del-var').onclick = () => {
+      state.customVars.splice(i, 1);
+      renderInlineCustomList();
+      updateOutput();
+    };
+    list.appendChild(row);
+  });
+}
+
 // Custom vars
 state.customVars = [];
 state.extras = {};
 const customVarsList = document.getElementById('custom-vars-list');
 
 function renderCustomVars() {
+  renderInlineCustomList();
   customVarsList.innerHTML = '';
   state.customVars.forEach((cv, i) => {
     const row = document.createElement('div');
@@ -1237,10 +1461,9 @@ function renderCustomVars() {
 document.getElementById('add-custom-var').onclick = () => {
   state.customVars.push({ name: '', value: '' });
   renderCustomVars();
-  // focus new name input
+  renderInlineCustomList();
   const inputs = customVarsList.querySelectorAll('.custom-var-name');
   if (inputs.length) inputs[inputs.length - 1].focus();
-  // open section if not open
   document.querySelector('[data-extra="customvars"]').classList.add('open');
 };
 
@@ -1550,13 +1773,46 @@ function closeAiModal() { aiModal.classList.remove('open'); }
 aiModalOverlay.onclick = closeAiModal;
 aiModalClose.onclick = closeAiModal;
 
+const pasteBackArea     = document.getElementById('paste-back-area');
+const pasteBackTextarea = document.getElementById('paste-back-textarea');
+const pasteUseBtn       = document.getElementById('paste-use-btn');
+const pasteCancelBtn    = document.getElementById('paste-cancel-btn');
+
 aiOpenBtn.onclick = () => {
   if (!aiCurrentText) return;
   const encoded = encodeURIComponent(aiCurrentText);
   const url = `https://claude.ai/new?q=${encoded}`;
   window.open(url, '_blank');
+  // Show paste-back area instead of closing modal
+  pasteBackArea.classList.add('visible');
+  pasteBackTextarea.value = '';
+  pasteBackTextarea.focus();
+  aiOpenBtn.textContent = '↗ Άνοιγμα ξανά';
+  showToast('✓ Άνοιξε το claude.ai — επικόλλησε την απάντηση παρακάτω');
+};
+
+pasteUseBtn.onclick = () => {
+  const text = pasteBackTextarea.value.trim();
+  if (!text) return showToast('Δεν υπάρχει κείμενο για χρήση');
+  // Load into editor
+  promptEditor.value = text;
+  state.selectedTpl = null;
+  state.vars = {};
+  document.getElementById('var-section').style.display = 'none';
+  document.getElementById('selected-tpl-name').textContent = 'Βελτιωμένο prompt';
+  updateOutput();
+  // Reset & close modal
+  pasteBackArea.classList.remove('visible');
+  pasteBackTextarea.value = '';
+  aiOpenBtn.textContent = 'Άνοιγμα στο claude.ai ↗';
   closeAiModal();
-  showToast('✓ Ανοίχτηκε στο claude.ai');
+  showToast('✓ Το βελτιωμένο prompt φορτώθηκε στον editor');
+};
+
+pasteCancelBtn.onclick = () => {
+  pasteBackArea.classList.remove('visible');
+  pasteBackTextarea.value = '';
+  aiOpenBtn.textContent = 'Άνοιγμα στο claude.ai ↗';
 };
 
 aiCopyBtn.onclick = async () => {
