@@ -134,7 +134,8 @@ html{overflow:hidden}
 .panel-title{font-family:var(--font-head);font-size:17px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.08em}
 .panel-sub{font-size:14px;color:var(--muted);margin-left:auto}
 .panel-body{flex:1;overflow:hidden;padding:20px;display:flex;min-height:0}
-.col-resizer{width:6px;flex-shrink:0;cursor:col-resize;position:relative;background:transparent;transition:background .15s}
+.col-resizer{width:0;flex-shrink:0;cursor:col-resize;position:relative;background:transparent;transition:background .15s,width .15s}
+.col-resizer.active{width:6px}
 .col-resizer::after{content:'';position:absolute;left:2px;top:0;bottom:0;width:2px;border-radius:2px;background:var(--line2);transition:background .15s}
 .col-resizer:hover::after,.col-resizer.dragging::after{background:var(--accent)}
 
@@ -179,7 +180,7 @@ html{overflow:hidden}
 .copy-flash{background:var(--accent3)!important;border-color:var(--accent3)!important;color:#000!important}
 
 /* OUTPUT */
-.output-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:17px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:100px;max-height:40vh;overflow-y:auto;position:relative}
+.output-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:17px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:80px;max-height:26vh;overflow-y:auto;position:relative}
 .output-box .highlight{color:var(--accent2);font-weight:500}
 .output-placeholder{color:var(--muted);font-style:italic}
 .char-count{font-size:13px;color:var(--muted);text-align:right;margin-top:4px}
@@ -215,8 +216,8 @@ html{overflow:hidden}
 .hist-empty{text-align:center;color:var(--muted);font-size:16px;padding:40px 0}
 
 /* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--accent3);color:var(--accent3);font-family:var(--font-mono);font-size:15px;padding:10px 16px;border-radius:var(--r);transform:translateY(120%);transition:transform .25s;z-index:200}
-.toast.show{transform:translateY(0)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--accent3);color:var(--accent3);font-family:var(--font-mono);font-size:15px;padding:10px 16px;border-radius:var(--r);opacity:0;visibility:hidden;transform:translateY(20px);transition:opacity .25s,transform .25s,visibility .25s;z-index:200}
+.toast.show{opacity:1;visibility:visible;transform:translateY(0)}
 
 /* NO TEMPLATE */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted)}
@@ -384,7 +385,7 @@ html{overflow:hidden}
           </div>
 
           <!-- Resize divider -->
-          <div class="col-resizer" id="col-resizer" style="display:none"></div>
+          <div class="col-resizer" id="col-resizer"></div>
 
           <!-- RIGHT column: parameters (own scroll) -->
           <div class="var-section" id="var-section" style="display:none;flex:0 0 360px;max-height:none;overflow-y:auto;margin-left:16px">
@@ -1136,7 +1137,7 @@ function renderTemplates() {
 function setVarSectionVisible(visible) {
   varSection.style.display = visible ? 'block' : 'none';
   const resizer = document.getElementById('col-resizer');
-  if (resizer) resizer.style.display = visible ? 'block' : 'none';
+  if (resizer) resizer.classList.toggle('active', visible);
 }
 
 // ─── SELECT TEMPLATE ──────────────────────────────────────────────────────────
