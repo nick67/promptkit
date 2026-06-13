@@ -134,6 +134,9 @@ html{overflow:hidden}
 .panel-title{font-family:var(--font-head);font-size:17px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.08em}
 .panel-sub{font-size:14px;color:var(--muted);margin-left:auto}
 .panel-body{flex:1;overflow:hidden;padding:20px;display:flex;min-height:0}
+.col-resizer{width:6px;flex-shrink:0;cursor:col-resize;position:relative;background:transparent;transition:background .15s}
+.col-resizer::after{content:'';position:absolute;left:2px;top:0;bottom:0;width:2px;border-radius:2px;background:var(--line2);transition:background .15s}
+.col-resizer:hover::after,.col-resizer.dragging::after{background:var(--accent)}
 
 /* TEMPLATE GRID */
 .template-grid{display:grid;grid-template-columns:1fr;gap:5px}
@@ -266,7 +269,8 @@ html{overflow:hidden}
   .panel-area{grid-template-columns:1fr;grid-template-rows:auto 1fr}
   .panel-body{flex-direction:column;overflow-y:auto}
   .panel-body > div:first-child{overflow-y:visible}
-  #var-section{flex:none !important;max-height:45vh}
+  #var-section{flex:none !important;max-height:45vh;margin-left:0 !important;flex-basis:auto !important}
+  .col-resizer{display:none !important}
 }
 
 /* EXTRAS — expandable sections */
@@ -355,9 +359,9 @@ html{overflow:hidden}
           <span class="panel-title">Editor</span>
           <span class="panel-sub" id="selected-tpl-name">Επίλεξε template</span>
         </div>
-        <div class="panel-body" style="flex-direction:row;gap:16px">
+        <div class="panel-body" style="flex-direction:row;gap:0" id="editor-panel-body">
           <!-- LEFT column: editor, preview, actions -->
-          <div style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:0;overflow-y:auto">
+          <div id="editor-left-col" style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:200px;overflow-y:auto;padding-right:16px">
             <!-- Editor -->
             <div style="display:flex;flex-direction:column;flex-shrink:0">
               <textarea class="editor-textarea" id="prompt-editor" placeholder="Επέλεξε ένα template ή γράψε το prompt σου εδώ..." style="min-height:100px;height:100px;resize:vertical"></textarea>
@@ -379,8 +383,11 @@ html{overflow:hidden}
             </div>
           </div>
 
+          <!-- Resize divider -->
+          <div class="col-resizer" id="col-resizer" style="display:none"></div>
+
           <!-- RIGHT column: parameters (own scroll) -->
-          <div class="var-section" id="var-section" style="display:none;flex:0 0 360px;max-height:none;overflow-y:auto">
+          <div class="var-section" id="var-section" style="display:none;flex:0 0 360px;max-height:none;overflow-y:auto;margin-left:16px">
             <div class="var-title">⚙ Παράμετροι</div>
             <div class="var-grid" id="var-grid"></div>
           </div>
@@ -965,6 +972,58 @@ const tplSearch = document.getElementById('tpl-search');
 if (tplSearch) tplSearch.oninput = renderTemplates;
 applySidebarState();
 
+// ─── COLUMN RESIZER ───────────────────────────────────────────────────────────
+(function(){
+  const resizer = document.getElementById('col-resizer');
+  const rightCol = document.getElementById('var-section');
+  const leftCol  = document.getElementById('editor-left-col');
+  const body     = document.getElementById('editor-panel-body');
+  if (!resizer || !rightCol || !leftCol || !body) return;
+
+  const savedWidth = parseInt(localStorage.getItem('promptkit_varwidth') || '360', 10);
+  rightCol.style.flexBasis = savedWidth + 'px';
+
+  let dragging = false;
+  resizer.addEventListener('mousedown', e => {
+    dragging = true;
+    resizer.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const bodyRect = body.getBoundingClientRect();
+    let newRightWidth = bodyRect.right - e.clientX;
+    const min = 240, max = bodyRect.width - 240;
+    newRightWidth = Math.max(min, Math.min(max, newRightWidth));
+    rightCol.style.flexBasis = newRightWidth + 'px';
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.userSelect = '';
+    localStorage.setItem('promptkit_varwidth', parseInt(rightCol.style.flexBasis, 10));
+  });
+
+  resizer.addEventListener('touchstart', () => { dragging = true; resizer.classList.add('dragging'); }, {passive:true});
+  window.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const bodyRect = body.getBoundingClientRect();
+    let newRightWidth = bodyRect.right - touch.clientX;
+    const min = 240, max = bodyRect.width - 240;
+    newRightWidth = Math.max(min, Math.min(max, newRightWidth));
+    rightCol.style.flexBasis = newRightWidth + 'px';
+  }, {passive:true});
+  window.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    localStorage.setItem('promptkit_varwidth', parseInt(rightCol.style.flexBasis, 10));
+  });
+})();
+
 // renderCats — removed (no categories)
 function renderCats() {}
 
@@ -1073,6 +1132,13 @@ function renderTemplates() {
   });
 }
 
+
+function setVarSectionVisible(visible) {
+  varSection.style.display = visible ? 'block' : 'none';
+  const resizer = document.getElementById('col-resizer');
+  if (resizer) resizer.style.display = visible ? 'block' : 'none';
+}
+
 // ─── SELECT TEMPLATE ──────────────────────────────────────────────────────────
 function selectTemplate(tpl) {
   state.selectedTpl = tpl;
@@ -1084,7 +1150,7 @@ function selectTemplate(tpl) {
 
   // Render variable inputs
   if (tpl.vars.length > 0) {
-    varSection.style.display = 'block';
+    setVarSectionVisible(true);
     varGrid.innerHTML = '';
     tpl.vars.forEach(v => {
       const row = document.createElement('div');
@@ -1124,7 +1190,7 @@ function selectTemplate(tpl) {
     // Render custom vars inline at the bottom of var-section
     renderInlineCustomVars();
   } else {
-    varSection.style.display = 'none';
+    setVarSectionVisible(false);
   }
 
   updateOutput();
@@ -1531,7 +1597,7 @@ clearBtn.onclick = () => {
   promptEditor.value = '';
   state.vars = {};
   state.selectedTpl = null;
-  varSection.style.display = 'none';
+  setVarSectionVisible(false);
   selectedName.textContent = 'Επίλεξε template';
   charCount.textContent = '0';
   outputBox.innerHTML = '<span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span>';
@@ -1798,7 +1864,7 @@ pasteUseBtn.onclick = () => {
   promptEditor.value = text;
   state.selectedTpl = null;
   state.vars = {};
-  document.getElementById('var-section').style.display = 'none';
+  setVarSectionVisible(false);
   if (document.getElementById('selected-tpl-name')) document.getElementById('selected-tpl-name').textContent = 'Βελτιωμένο prompt';
   updateOutput();
   // Reset & close modal
