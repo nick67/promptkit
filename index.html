@@ -50,7 +50,8 @@
 }
 html{font-size:21px}
 /* TRANSITIONS */
-body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100dvh;overflow-x:hidden;transition:background-color .3s ease,color .3s ease}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);height:100dvh;overflow:hidden;transition:background-color .3s ease,color .3s ease}
+html{overflow:hidden}
 
 
 /* CARD CONTROLS */
@@ -80,8 +81,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
 
 /* LAYOUT */
-.app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:64px 1fr;height:100dvh;overflow:hidden;transition:grid-template-columns .25s ease}
-.app.sidebar-collapsed{grid-template-columns:48px 1fr}
+.app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:64px 1fr;height:100dvh;overflow:hidden;transition:grid-template-columns .25s ease}
+.app.sidebar-collapsed{grid-template-columns:40px 1fr}
 
 /* TOPBAR */
 .topbar{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--bg2)}
@@ -94,11 +95,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 #install-btn:hover{opacity:.85}
 
 /* SIDEBAR */
-.sidebar{background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:width .25s ease;position:relative}
-.sidebar-content{flex:1;display:flex;flex-direction:column;overflow:hidden;transition:opacity .2s}
+.sidebar{background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:width .25s ease;position:relative;overflow:visible;min-height:0}
+.sidebar-content{flex:1;display:flex;flex-direction:column;overflow:hidden;transition:opacity .2s;min-height:0}
 .app.sidebar-collapsed .sidebar-content{opacity:0;pointer-events:none}
-.sidebar-toggle{position:absolute;top:10px;right:-14px;width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:10;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.sidebar-toggle{position:absolute;top:50%;right:-13px;transform:translateY(-50%);width:26px;height:48px;border-radius:0 6px 6px 0;background:var(--bg2);border:1px solid var(--line2);border-left:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;z-index:20;transition:all .2s;box-shadow:2px 0 6px rgba(0,0,0,.15)}
 .sidebar-toggle:hover{border-color:var(--accent);color:var(--accent2);background:var(--bg3)}
+.app.sidebar-collapsed .sidebar-toggle{border-left:1px solid var(--line2);border-radius:0 6px 6px 0}
 .app.sidebar-collapsed .sidebar-toggle{right:-14px}
 .sidebar-collapsed-icons{display:none;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
 .app.sidebar-collapsed .sidebar-collapsed-icons{display:flex}
@@ -125,32 +127,32 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .main{display:flex;flex-direction:column;overflow:hidden}
 
 /* PANEL SPLIT */
-.panel-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0;overflow:hidden}
-.panel{display:flex;flex-direction:column;overflow:hidden}
-.panel+.panel{border-left:1px solid var(--line)}
+.panel-area{flex:1;display:flex;overflow:hidden}
+.panel{display:flex;flex-direction:column;overflow:hidden;flex:1;min-width:0}
+.panel+.panel{border-left:none}
 .panel-header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:var(--bg2)}
 .panel-title{font-family:var(--font-head);font-size:17px;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.08em}
 .panel-sub{font-size:14px;color:var(--muted);margin-left:auto}
-.panel-body{flex:1;overflow-y:auto;padding:20px}
+.panel-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:0}
 
 /* TEMPLATE GRID */
-.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tpl-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:14px;cursor:grab;transition:all .2s;position:relative;overflow:hidden}
+.template-grid{display:grid;grid-template-columns:1fr;gap:5px}
+.tpl-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;cursor:grab;transition:all .2s;position:relative;overflow:hidden}
 .tpl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--cat-color,var(--line2));opacity:0;transition:opacity .15s}
 .tpl-card:hover{border-color:var(--line2);background:var(--bg3)}
 .tpl-card:hover::before{opacity:1}
 .tpl-card.selected{border-color:var(--accent);background:var(--bg3)}
 .tpl-card.selected::before{opacity:1;background:var(--accent)}
-.tpl-name{font-family:var(--font-head);font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px}
-.tpl-desc{font-size:14px;color:var(--muted);line-height:1.5}
-.tpl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tpl-name{font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--text);margin-bottom:0}
+.tpl-desc{font-size:14px;color:var(--muted);line-height:1.5;display:none}
+.tpl-tags{display:none}
 .tag{font-size:13px;padding:2px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--line2);color:var(--muted)}
 
 /* EDITOR PANEL */
 .prompt-editor-wrap{position:relative;flex:1;display:flex;flex-direction:column;gap:12px}
-.editor-textarea{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:17px;color:var(--text);resize:none;outline:none;line-height:1.7;min-height:180px;transition:border-color .2s}
+.editor-textarea{flex:1;background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:17px;color:var(--text);resize:none;outline:none;line-height:1.7;min-height:120px;transition:border-color .2s}
 .editor-textarea:focus{border-color:var(--accent)}
-.var-section{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px}
+.var-section{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px;max-height:45vh;overflow-y:auto}
 .var-title{font-size:14px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;font-family:var(--font-head);font-weight:600}
 .var-grid{display:grid;gap:6px}
 .var-row{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
@@ -162,7 +164,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .var-row.hint-active .hint-tooltip{opacity:1;transform:translateY(0)}
 .hint-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);color:var(--muted);font-size:11px;cursor:default;flex-shrink:0;transition:border-color .15s,color .15s}
 .var-row.hint-active .hint-icon{border-color:var(--accent);color:var(--accent2)}
-.editor-actions{display:flex;gap:8px;flex-wrap:wrap}
+.editor-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
 .btn{padding:9px 16px;border-radius:var(--r);font-family:var(--font-mono);font-size:15px;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;gap:6px}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn-primary:hover{opacity:.85}
@@ -174,7 +176,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
 .copy-flash{background:var(--accent3)!important;border-color:var(--accent3)!important;color:#000!important}
 
 /* OUTPUT */
-.output-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:17px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:100px;flex:1;overflow-y:auto;position:relative}
+.output-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:16px;font-family:var(--font-mono);font-size:17px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:100px;max-height:32vh;overflow-y:auto;position:relative}
 .output-box .highlight{color:var(--accent2);font-weight:500}
 .output-placeholder{color:var(--muted);font-style:italic}
 .char-count{font-size:13px;color:var(--muted);text-align:right;margin-top:4px}
@@ -327,14 +329,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
   <aside class="sidebar">
     <button class="sidebar-toggle" id="sidebar-toggle" title="Σύμπτυξη/Ανάπτυξη">‹</button>
     <div class="sidebar-content">
-      <div class="sidebar-section">Κατηγορίες</div>
-      <ul class="cat-list" id="cat-list"></ul>
-      <div class="sidebar-divider"></div>
-      <div class="sidebar-bottom">
-        <button class="history-toggle" id="hist-btn">
-          <span>📋</span> History
-          <span id="hist-count" class="cat-count">0</span>
-        </button>
+      <div class="sidebar-section" style="display:flex;align-items:center;justify-content:space-between;padding-right:8px">
+        Templates
+        <button class="history-toggle" id="hist-btn" style="padding:4px 10px;font-size:13px;width:auto">📋 <span id="hist-count">0</span></button>
+      </div>
+      <div style="padding:6px 8px 4px">
+        <input id="tpl-search" class="var-input" type="text" placeholder="🔍 Αναζήτηση..." style="width:100%;font-size:13px">
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:4px 8px 8px;min-height:0">
+        <div class="template-grid" id="template-grid-sidebar"></div>
       </div>
     </div>
     <div class="sidebar-collapsed-icons" id="collapsed-icons"></div>
@@ -343,27 +346,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
   <!-- MAIN -->
   <main class="main">
     <div class="panel-area">
-      <!-- LEFT: Templates -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Templates</span>
-          <span class="panel-sub" id="tpl-count-label">—</span>
-        </div>
-        <div class="panel-body">
-          <div class="template-grid" id="template-grid"></div>
-        </div>
-      </div>
-
-      <!-- RIGHT: Editor + Output -->
+      <!-- Editor panel -->
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Editor</span>
           <span class="panel-sub" id="selected-tpl-name">Επίλεξε template</span>
         </div>
-        <div class="panel-body" style="display:flex;flex-direction:column;gap:14px">
+        <div class="panel-body">
           <!-- Editor -->
-          <div>
-            <textarea class="editor-textarea" id="prompt-editor" rows="8" placeholder="Επέλεξε ένα template ή γράψε το prompt σου εδώ..."></textarea>
+          <div style="display:flex;flex-direction:column">
+            <textarea class="editor-textarea" id="prompt-editor" placeholder="Επέλεξε ένα template ή γράψε το prompt σου εδώ..." style="min-height:100px;height:100px;resize:vertical"></textarea>
             <div class="char-count"><span id="char-count">0</span> χαρακτήρες</div>
           </div>
 
@@ -374,38 +366,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-hei
           </div>
 
           <!-- Output -->
-          <div>
+          <div style="flex-shrink:0">
             <div class="var-title" style="font-size:14px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'Syne',sans-serif;font-weight:600;margin-bottom:8px">Preview</div>
             <div class="output-box" id="output-box"><span class="output-placeholder">Το τελικό prompt θα εμφανιστεί εδώ...</span></div>
           </div>
-
-
-          <!-- EXTRAS -->
-          <div class="extras-area" id="extras-area">
-
-            <!-- D: Γραφικές παραστάσεις -->
-            <div class="extra-section" data-extra="diagram">
-              <div class="extra-header">
-                <span class="extra-icon">📈</span>
-                <span class="extra-label">Γραφικές παραστάσεις</span>
-                <span class="extra-desc">διαγράμματα προσομοίωσης</span>
-                <span class="extra-arrow">▶</span>
-              </div>
-              <div class="extra-body">
-                <span class="extra-hint">Ορίσε διαγράμματα με μεταβλητές για τους άξονες Χ και Υ. Μπορείς να προσθέσεις πολλαπλά ή να κλωνοποιήσεις υπάρχοντα.</span>
-                <div class="graph-vars-list" id="graph-vars-list"></div>
-                <div style="display:flex;gap:6px;margin-top:4px">
-                  <button class="btn-add-var" id="add-graph-var" style="flex:1">+ Νέο διάγραμμα</button>
-                </div>
-                <div class="graph-options">
-                  <label class="graph-option"><input type="checkbox" id="gopt-realtime" checked> Real-time</label>
-                  <label class="graph-option"><input type="checkbox" id="gopt-legend" checked> Legend</label>
-                  <label class="graph-option"><input type="checkbox" id="gopt-pause"> Pause/Resume</label>
-                  <label class="graph-option"><input type="checkbox" id="gopt-export"> Export PNG</label>
-                </div>
-              </div>
-            </div>
-
           <!-- Actions -->
           <div class="editor-actions">
             <button class="btn btn-primary" id="copy-btn">Copy prompt</button>
@@ -540,15 +504,11 @@ const HINTS = {
   current_metrics:  'π.χ. FPS: 12, LCP: 4.2s, TBT: 800ms',
   target_metrics:   'π.χ. FPS: 60, LCP < 1.5s, TBT < 200ms',
   // sim1
-  physics_type:     'π.χ. σφαίρες με βαρύτητα και ελαστικές συγκρούσεις',
-  num_objects:      'π.χ. 80',
-  gravity:          'π.χ. 9.8',
-  friction:         'π.χ. 0.98 (ελαφρά τριβή)',
-  boundaries:       'π.χ. elastic (αναπηδούν στα όρια)',
-  bg_color:         'π.χ. #0f0f13',
-  particle_color:   'π.χ. gradient από #7c6aff σε #3dffc3',
-  trails:           'π.χ. yes, με opacity 0.3',
-  custom_control:   'π.χ. slider για αριθμό σωματιδίων',
+  sim_purpose:        'π.χ. Να δείξω πώς η γωνία εκτόξευσης επηρεάζει την εμβέλεια βλήματος',
+  sim_description:    'π.χ. Βλήμα εκτοξεύεται με αρχική ταχύτητα και γωνία, υπό την επίδραση βαρύτητας και αντίστασης αέρα (νόμος Stokes/Newton)',
+  keywords:           'π.χ. κινηματική, βαρύτητα, αντίσταση αέρα, τροχιά βλήματος',
+  example_reference:  'π.χ. https://phet.colorado.edu/en/simulations/projectile-motion ή "όπως η προσομοίωση PhET Projectile Motion"',
+  adjustable_params:  'π.χ. αρχική ταχύτητα (m/s), γωνία εκτόξευσης (°), μάζα (kg), συντελεστής αντίστασης αέρα',
   // sim2
   data_description: 'π.χ. θερμοκρασία ανά μήνα για 3 πόλεις',
   chart_type:       'π.χ. line chart με area fill',
@@ -562,18 +522,7 @@ const HINTS = {
   difficulty:       'π.χ. ξεκινά αργά, αυξάνεται κάθε 10 δευτερόλεπτα',
   score_system:     'π.χ. +1 ανά δευτερόλεπτο επιβίωσης, bonus για combos',
   visual_style:     'π.χ. pixel art, neon χρώματα σε μαύρο φόντο',
-  // sim4 - chemistry
-  reaction_type:    'π.χ. οξεοβασική εξουδετέρωση HCl + NaOH → NaCl + H₂O',
-  molecules:        'π.χ. H₂O, CO₂, NaCl — με αριθμό μορίων αν θες',
-  chem_visual:      'π.χ. σφαίρες με χρωματική κωδικοποίηση ανά στοιχείο (CPK)',
-  chem_controls:    'π.χ. slider ταχύτητας, κουμπί reset, θερμόμετρο',
-  chem_detail:      'π.χ. εμφάνιση ΔH, ισορροπία αντίδρασης, pH meter',
-  // sim5 - biology
-  bio_type:         'π.χ. διάδοση ιού σε πληθυσμό (SIR model)',
-  organism:         'π.χ. κύτταρο, νευρώνας, πληθυσμός ζώων',
-  bio_params:       'π.χ. ρυθμός μετάδοσης β=0.3, ρυθμός ανάρρωσης γ=0.1',
-  bio_visual:       'π.χ. κόκκινα=μολυσμένα, πράσινα=υγιή, γκρι=ανοσοποιημένα',
-  bio_controls:     'π.χ. slider πληθυσμού, ρυθμός μετάδοσης, κουμπί reset',
+  // sim4/sim5 — share hints with sim1 (sim_purpose, sim_description, keywords, example_reference, adjustable_params, target_audience)
   extra_instructions: 'π.χ. Πρόσθεσε ήχους, χρησιμοποίησε dark theme, εμφάνισε FPS counter...',
   // gen1
   code:             'επικόλλησε τον κώδικά σου εδώ',
@@ -751,40 +700,37 @@ Color scheme: {{color_scheme}}
     vars:['app_description','user_role','target_audience','language','slow_code','perf_issue','current_metrics','target_metrics'] },
 
   // Simulations
-  { id:'sim1', cat:'sim', name:'Physics Simulation', desc:'2D φυσική προσομοίωση με Canvas', tags:['physics','canvas','simulation'],
-    template:`Περιγραφή εφαρμογής: {{app_description}}
-Ρόλος χρήστη: {{user_role}}
-Κοινό: {{target_audience}}
+  { id:'sim1', cat:'sim', name:'Physics Simulation', desc:'Φυσικά ακριβής προσομοίωση με Canvas', tags:['physics','canvas','simulation'],
+    template:`Δημιούργησε μια φυσικά ακριβή προσομοίωση σε HTML/CSS/JS (χωρίς εξωτερικές βιβλιοθήκες).
 
-Δημιούργησε μια 2D προσομοίωση {{physics_type}} με HTML Canvas.
+ΣΚΟΠΟΣ
+{{sim_purpose}}
 
-Παράμετροι:
-- Αριθμός αντικειμένων: {{num_objects}}
-- Μάζα αντικειμένων: {{mass}}
-- Gravity: {{gravity}} (π.χ. 9.8, 0, custom)
-- Αντίσταση αέρα (drag): {{air_resistance}}
-- Αρχική ταχύτητα: {{initial_velocity}}
-- Friction: {{friction}}
-- Boundaries: {{boundaries}} (elastic/absorb/wrap)
-- FPS target: 60
+ΚΟΙΝΟ
+{{target_audience}}
 
-Οπτικά:
-- Background: {{bg_color}}
-- Particle χρώμα: {{particle_color}}
-- Trails: {{trails}} (yes/no)
+ΠΕΡΙΓΡΑΦΗ
+{{sim_description}}
 
-Controls (sliders/buttons):
-- Pause/Play
-- Reset
-- Gravity slider
-- {{custom_control}}
+ΛΕΞΕΙΣ ΚΛΕΙΔΙΑ
+{{keywords}}
 
-Χρήση requestAnimationFrame, χωρίς εξωτερικές βιβλιοθήκες.
-Εξήγησε τους τύπους φυσικής που χρησιμοποιείς.
+ΠΑΡΑΔΕΙΓΜΑ ΟΜΟΙΑΣ ΠΡΟΣΟΜΟΙΩΣΗΣ
+{{example_reference}}
 
-Επιπλέον οδηγίες:
-{{extra_instructions}}`,
-    vars:['app_description','user_role','target_audience','physics_type','num_objects','mass','air_resistance','initial_velocity','gravity','friction','boundaries','bg_color','particle_color','trails','custom_control','extra_instructions'] },
+ΠΑΡΑΜΕΤΡΟΙ ΠΟΥ ΜΠΟΡΕΙ ΝΑ ΑΛΛΑΖΕΙ Ο ΧΡΗΣΤΗΣ
+{{adjustable_params}}
+
+ΟΔΗΓΙΕΣ ΥΛΟΠΟΙΗΣΗΣ
+- Χρησιμοποίησε αυστηρά σωστές φυσικές εξισώσεις και μονάδες SI
+- Αριθμητική ολοκλήρωση με Runge-Kutta 4ης τάξης (RK4) ή Verlet όπου ταιριάζει
+- Πριν γράψεις κώδικα, ρώτα τον χρήστη για τις αρχικές τιμές των φυσικών μεγεθών που χρειάζεται η προσομοίωση
+- Μετά τις αρχικές τιμές, ρώτα αν θέλει real-time διαγράμματα και για ποια μεγέθη
+- UI: απλό και καθαρό, χωρίς περιττά χρώματα, animations ή διαφάνειες
+- Controls: Pause/Play, Reset, sliders για τις παραμέτρους
+- Σχολίασε τον κώδικα με τις εξισώσεις που χρησιμοποιείς (π.χ. // F = ma)
+- Χρήση requestAnimationFrame με σταθερό dt`,
+    vars:['sim_purpose','target_audience','sim_description','keywords','example_reference','adjustable_params'] },
 
   { id:'sim2', cat:'sim', name:'Data Visualization', desc:'Interactive γράφημα με SVG/Canvas', tags:['chart','svg','data-viz'],
     template:`Περιγραφή εφαρμογής: {{app_description}}
@@ -838,68 +784,69 @@ Sound: χωρίς (μόνο visual feedback)
 {{extra_instructions}}`,
     vars:['app_description','user_role','target_audience','game_type','game_mechanics','controls','difficulty','score_system','visual_style','extra_instructions'] },
 
-  { id:'sim4', cat:'sim', name:'Chemistry Simulation', desc:'Προσομοίωση χημικής αντίδρασης με μόρια', tags:['chemistry','molecules','canvas'],
-    template:`Περιγραφή εφαρμογής: {{app_description}}
-Ρόλος χρήστη: {{user_role}}
-Κοινό: {{target_audience}}
+  { id:'sim4', cat:'sim', name:'Chemistry Simulation', desc:'Φυσικά/χημικά ακριβής προσομοίωση', tags:['chemistry','molecules','canvas'],
+    template:`Δημιούργησε μια χημικά ακριβή προσομοίωση σε HTML/CSS/JS (χωρίς εξωτερικές βιβλιοθήκες).
 
-Δημιούργησε interactive προσομοίωση χημικής αντίδρασης με HTML Canvas.
+ΣΚΟΠΟΣ
+{{sim_purpose}}
 
-Αντίδραση: {{reaction_type}}
-Μόρια: {{molecules}}
+ΚΟΙΝΟ
+{{target_audience}}
 
-Οπτικοποίηση:
-- Στυλ: {{chem_visual}}
-- Τα μόρια κινούνται τυχαία (Brownian motion)
-- Όταν συγκρουστούν τα αντιδρώντα → εμφάνιση προϊόντων με animation
-- Χρωματική κωδικοποίηση: κάθε στοιχείο έχει διαφορετικό χρώμα (CPK standard)
-- Ετικέτα με χημικό τύπο πάνω σε κάθε μόριο
+ΠΕΡΙΓΡΑΦΗ
+{{sim_description}}
 
-Controls:
-{{chem_controls}}
+ΛΕΞΕΙΣ ΚΛΕΙΔΙΑ
+{{keywords}}
 
-Πληροφορίες που εμφανίζονται:
-{{chem_detail}}
+ΠΑΡΑΔΕΙΓΜΑ ΟΜΟΙΑΣ ΠΡΟΣΟΜΟΙΩΣΗΣ
+{{example_reference}}
 
-Τεχνικά:
-- Pure HTML/CSS/JS, requestAnimationFrame
-- Collision detection μεταξύ μορίων
-- Εξήγησε τη χημεία πίσω από την αντίδραση σε σχόλια
+ΠΑΡΑΜΕΤΡΟΙ ΠΟΥ ΜΠΟΡΕΙ ΝΑ ΑΛΛΑΖΕΙ Ο ΧΡΗΣΤΗΣ
+{{adjustable_params}}
 
-Επιπλέον οδηγίες:
-{{extra_instructions}}`,
-    vars:['app_description','user_role','target_audience','reaction_type','molecules','chem_visual','chem_controls','chem_detail','extra_instructions'] },
+ΟΔΗΓΙΕΣ ΥΛΟΠΟΙΗΣΗΣ
+- Χρησιμοποίησε σωστές χημικές εξισώσεις, στοιχειομετρία και μονάδες SI (mol, M, J, K)
+- Σεβάσου διατήρηση μάζας και ενέργειας στις αντιδράσεις
+- Πριν γράψεις κώδικα, ρώτα τον χρήστη για τις αρχικές τιμές των μεγεθών που χρειάζεται η προσομοίωση (π.χ. συγκεντρώσεις, θερμοκρασία, pH)
+- Μετά τις αρχικές τιμές, ρώτα αν θέλει real-time διαγράμματα και για ποια μεγέθη
+- UI: απλό και καθαρό, χωρίς περιττά χρώματα, animations ή διαφάνειες
+- Controls: Pause/Play, Reset, sliders για τις παραμέτρους
+- Σχολίασε τον κώδικα με τις χημικές εξισώσεις/νόμους που χρησιμοποιείς
+- Χρήση requestAnimationFrame με σταθερό dt`,
+    vars:['sim_purpose','target_audience','sim_description','keywords','example_reference','adjustable_params'] },
 
-  { id:'sim5', cat:'sim', name:'Βιολογικό Μοντέλο', desc:'Προσομοίωση βιολογικής διεργασίας', tags:['biology','simulation','model'],
-    template:`Περιγραφή εφαρμογής: {{app_description}}
-Ρόλος χρήστη: {{user_role}}
-Κοινό: {{target_audience}}
+  { id:'sim5', cat:'sim', name:'Biology Simulation', desc:'Βιολογικά ακριβής προσομοίωση', tags:['biology','simulation','model'],
+    template:`Δημιούργησε μια βιολογικά ακριβή προσομοίωση σε HTML/CSS/JS (χωρίς εξωτερικές βιβλιοθήκες).
 
-Δημιούργησε interactive βιολογική προσομοίωση με HTML Canvas.
+ΣΚΟΠΟΣ
+{{sim_purpose}}
 
-Τύπος: {{bio_type}}
-Οργανισμός / μονάδα: {{organism}}
+ΚΟΙΝΟ
+{{target_audience}}
 
-Παράμετροι μοντέλου:
-{{bio_params}}
+ΠΕΡΙΓΡΑΦΗ
+{{sim_description}}
 
-Οπτικοποίηση:
-- {{bio_visual}}
-- Smooth animation με requestAnimationFrame
-- Real-time γράφημα (line chart) που δείχνει εξέλιξη των μεγεθών στο χρόνο
-- Αριθμητικές ενδείξεις για κάθε κατηγορία
+ΛΕΞΕΙΣ ΚΛΕΙΔΙΑ
+{{keywords}}
 
-Controls:
-{{bio_controls}}
+ΠΑΡΑΔΕΙΓΜΑ ΟΜΟΙΑΣ ΠΡΟΣΟΜΟΙΩΣΗΣ
+{{example_reference}}
 
-Τεχνικά:
-- Pure HTML/CSS/JS, χωρίς βιβλιοθήκες
-- Το μοντέλο υπολογίζεται με διαφορικές εξισώσεις (Euler method, dt=0.1)
-- Εξήγησε τη βιολογία / μαθηματικά του μοντέλου σε σχόλια
+ΠΑΡΑΜΕΤΡΟΙ ΠΟΥ ΜΠΟΡΕΙ ΝΑ ΑΛΛΑΖΕΙ Ο ΧΡΗΣΤΗΣ
+{{adjustable_params}}
 
-Επιπλέον οδηγίες:
-{{extra_instructions}}`,
-    vars:['app_description','user_role','target_audience','bio_type','organism','bio_params','bio_visual','bio_controls','extra_instructions'] },
+ΟΔΗΓΙΕΣ ΥΛΟΠΟΙΗΣΗΣ
+- Χρησιμοποίησε σωστά βιολογικά/μαθηματικά μοντέλα (π.χ. διαφορικές εξισώσεις, SIR, λογιστική ανάπτυξη)
+- Αριθμητική επίλυση με Euler ή RK4 με σταθερό dt
+- Πριν γράψεις κώδικα, ρώτα τον χρήστη για τις αρχικές τιμές των μεγεθών που χρειάζεται η προσομοίωση (π.χ. πληθυσμοί, ρυθμοί)
+- Μετά τις αρχικές τιμές, ρώτα αν θέλει real-time διαγράμματα και για ποια μεγέθη
+- UI: απλό και καθαρό, χωρίς περιττά χρώματα, animations ή διαφάνειες
+- Controls: Pause/Play, Reset, sliders για τις παραμέτρους
+- Σχολίασε τον κώδικα με τις εξισώσεις/μοντέλα που χρησιμοποιείς
+- Χρήση requestAnimationFrame με σταθερό dt`,
+    vars:['sim_purpose','target_audience','sim_description','keywords','example_reference','adjustable_params'] },
 
   // General
   { id:'gen1', cat:'gen', name:'Code Review', desc:'Αναλυτικό code review', tags:['review','quality','best-practices'],
@@ -949,16 +896,16 @@ Controls:
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = {
-  selectedCat: 'all',
+  selectedCat: 'all', // kept for compat
   selectedTpl: null,
   vars: {},
   history: JSON.parse(localStorage.getItem('promptkit_history') || '[]'),
 };
 
 // ─── DOM REFS ─────────────────────────────────────────────────────────────────
-const catList      = document.getElementById('cat-list');
-const templateGrid = document.getElementById('template-grid');
-const tplCountLabel= document.getElementById('tpl-count-label');
+const catList      = null; // removed
+const templateGrid = document.getElementById('template-grid-sidebar');
+const tplCountLabel= { textContent: '' }; // no longer shown
 const promptEditor = document.getElementById('prompt-editor');
 const varSection   = document.getElementById('var-section');
 const varGrid      = document.getElementById('var-grid');
@@ -967,9 +914,9 @@ const charCount    = document.getElementById('char-count');
 const copyBtn      = document.getElementById('copy-btn');
 const saveBtn      = document.getElementById('save-btn');
 const clearBtn     = document.getElementById('clear-btn');
-const selectedName = document.getElementById('selected-tpl-name');
+const selectedName = document.getElementById('selected-tpl-name') || { textContent: '' };
 const histBtn      = document.getElementById('hist-btn');
-const histCount    = document.getElementById('hist-count');
+const histCount    = document.getElementById('hist-count') || { textContent: '' };
 const histDrawer   = document.getElementById('history-drawer');
 const histList     = document.getElementById('hist-list');
 const drawerOverlay= document.getElementById('drawer-overlay');
@@ -1000,13 +947,6 @@ function applySidebarState() {
 
 function renderCollapsedIcons() {
   collapsedIcons.innerHTML = '';
-  CATEGORIES.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'collapsed-cat-btn' + (state.selectedCat === cat.id ? ' active' : '');
-    btn.innerHTML = `${CAT_ICONS[cat.id] || '•'}<span class="cat-tooltip">${cat.label}</span>`;
-    btn.onclick = () => { state.selectedCat = cat.id; renderCollapsedIcons(); renderTemplates(); };
-    collapsedIcons.appendChild(btn);
-  });
   const histIcon = document.createElement('button');
   histIcon.className = 'collapsed-cat-btn';
   histIcon.innerHTML = `📋<span class="cat-tooltip">History</span>`;
@@ -1015,20 +955,12 @@ function renderCollapsedIcons() {
 }
 
 sidebarToggle.onclick = () => { sidebarCollapsed = !sidebarCollapsed; applySidebarState(); };
+const tplSearch = document.getElementById('tpl-search');
+if (tplSearch) tplSearch.oninput = renderTemplates;
 applySidebarState();
 
-// ─── RENDER CATEGORIES ────────────────────────────────────────────────────────
-function renderCats() {
-  catList.innerHTML = '';
-  CATEGORIES.forEach(cat => {
-    const count = cat.id === 'all' ? TEMPLATES.length : TEMPLATES.filter(t=>t.cat===cat.id).length;
-    const li = document.createElement('li');
-    li.className = 'cat-item' + (state.selectedCat===cat.id?' active':'');
-    li.innerHTML = `<span class="cat-dot" style="background:${cat.color}"></span>${cat.label}<span class="cat-count">${count}</span>`;
-    li.onclick = () => { state.selectedCat=cat.id; renderCats(); renderTemplates(); };
-    catList.appendChild(li);
-  });
-}
+// renderCats — removed (no categories)
+function renderCats() {}
 
 // ─── TEMPLATE PREFS (pin/hide/order) ─────────────────────────────────────────
 const tplPrefs = JSON.parse(localStorage.getItem('promptkit_tplprefs') || '{}');
@@ -1042,7 +974,10 @@ let dragSrcId  = null;
 
 // ─── RENDER TEMPLATES ─────────────────────────────────────────────────────────
 function renderTemplates() {
-  let filtered = state.selectedCat==='all' ? [...TEMPLATES] : TEMPLATES.filter(t=>t.cat===state.selectedCat);
+  const searchQ = (document.getElementById('tpl-search')?.value || '').toLowerCase();
+  let filtered = searchQ
+    ? TEMPLATES.filter(t => t.name.toLowerCase().includes(searchQ) || t.tags.some(g => g.includes(searchQ)))
+    : [...TEMPLATES];
 
   // Apply saved order
   filtered.sort((a,b) => (getPref(a.id,'order',999)) - (getPref(b.id,'order',999)));
@@ -1053,7 +988,7 @@ function renderTemplates() {
   const visible     = showHidden ? filtered : filtered.filter(t => !getPref(t.id,'hidden',false));
 
   tplCountLabel.textContent = visible.length + ' templates';
-  const catColor = CATEGORIES.find(c=>c.id===state.selectedCat)?.color || '#7070a0';
+  const catColor = '#7c6aff';
 
   templateGrid.innerHTML = '';
 
@@ -1149,18 +1084,15 @@ function selectTemplate(tpl) {
       const row = document.createElement('div');
       row.className = 'var-row';
       const hint = HINTS[v] || v.replace(/_/g,' ') + '...';
-      const shortPlaceholder = hint.length > 40 ? hint.slice(0, 38) + '…' : hint;
       row.innerHTML = `
         <label class="var-label" style="display:flex;align-items:center;gap:6px;">
           {{${v}}}
-          <span class="hint-icon" aria-label="hint">?</span>
-          <span class="hint-tooltip">${hint}</span>
         </label>
-        <input class="var-input" type="text" placeholder="${shortPlaceholder}" data-var="${v}">`;
+        <input class="var-input" type="text" placeholder="${hint}" data-var="${v}">`;
       varGrid.appendChild(row);
     });
     varGrid.querySelectorAll('.var-input').forEach(inp => {
-      inp.oninput = () => { state.vars[inp.dataset.var] = inp.value; updateOutput(); };
+      inp.oninput = () => { state.vars[inp.getAttribute('data-var')] = inp.value; updateOutput(); };
     });
 
     // Tooltip: show on row hover, hide when any input in the grid is focused
@@ -1196,20 +1128,24 @@ function selectTemplate(tpl) {
 // ─── BUILD EXTRAS ─────────────────────────────────────────────────────────────
 function buildExtras() {
   const parts = [];
-  const url  = document.getElementById('extra-link-url').value.trim();
-  const desc = document.getElementById('extra-link-desc').value.trim();
+  const urlEl = document.getElementById('extra-link-url');
+  const descEl = document.getElementById('extra-link-desc');
+  const url  = urlEl?.value.trim() || '';
+  const desc = descEl?.value.trim() || '';
   if (url) parts.push('\n\nΑναφορά / Παράδειγμα: ' + (desc ? desc + ' — ' : '') + url);
-  const fml = document.getElementById('extra-formulas').value.trim();
+  const fmlEl = document.getElementById('extra-formulas');
+  const fml = fmlEl?.value.trim() || '';
   if (fml) parts.push('\n\nΣχετικοί νόμοι / τύποι:\n' + fml);
   // Graph vars
   if (state.graphVars && state.graphVars.length) {
     const filled = state.graphVars.filter(g => g.xVar || g.yVar);
     if (filled.length) {
       const opts = [];
-      if (document.getElementById('gopt-realtime')?.checked) opts.push('real-time ενημέρωση');
-      if (document.getElementById('gopt-legend')?.checked)   opts.push('legend');
-      if (document.getElementById('gopt-pause')?.checked)    opts.push('pause/resume button');
-      if (document.getElementById('gopt-export')?.checked)   opts.push('export PNG button');
+      // gopt elements are dynamically created — read from state instead
+      if (state.gopts?.realtime !== false) opts.push('real-time ενημέρωση');
+      if (state.gopts?.legend   !== false) opts.push('legend');
+      if (state.gopts?.pause)              opts.push('pause/resume button');
+      if (state.gopts?.export)             opts.push('export PNG button');
       const varLines = filled.map((g,i) => {
         const t = g.title ? ` "${g.title}"` : ` #${i+1}`;
         return `  - Διάγραμμα${t}: Χ=${g.xVar||'?'} / Υ=${g.yVar||'?'} → ${g.type} chart`;
@@ -1256,6 +1192,7 @@ document.querySelectorAll('.extra-header').forEach(hdr => {
 
 // Graph builder — with X/Y axes and clone
 state.graphVars = [];
+state.gopts = { realtime: true, legend: true, pause: false, export: false };
 const graphVarsList = document.getElementById('graph-vars-list');
 const GRAPH_TYPES = ['line','bar','scatter','area','histogram'];
 
@@ -1321,7 +1258,10 @@ if (addGraphVarBtn) addGraphVarBtn.onclick = () => {
 };
 ['gopt-realtime','gopt-legend','gopt-pause','gopt-export'].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.onchange = updateOutput;
+  if (el) {
+    const key = id.replace('gopt-','');
+    el.onchange = () => { state.gopts[key] = el.checked; updateOutput(); };
+  }
 });
 
 // LaTeX preview (simple text render)
@@ -1445,7 +1385,11 @@ function renderInlineCustomVars() {
   };
   ['gopt-realtime','gopt-legend','gopt-pause','gopt-export'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.onchange = updateOutput;
+    if (el) {
+      const key = id.replace('gopt-','');
+      el.checked = state.gopts?.[key] ?? (key==='realtime'||key==='legend');
+      el.onchange = () => { state.gopts[key] = el.checked; updateOutput(); };
+    }
   });
 }
 
@@ -1478,7 +1422,7 @@ function renderInlineCustomList() {
 // Custom vars
 state.customVars = [];
 state.extras = {};
-const customVarsList = document.getElementById('custom-vars-list'); // may be null
+const customVarsList = null; // removed from DOM
 
 function renderCustomVars() {
   renderInlineCustomList();
@@ -1849,7 +1793,7 @@ pasteUseBtn.onclick = () => {
   state.selectedTpl = null;
   state.vars = {};
   document.getElementById('var-section').style.display = 'none';
-  document.getElementById('selected-tpl-name').textContent = 'Βελτιωμένο prompt';
+  if (document.getElementById('selected-tpl-name')) document.getElementById('selected-tpl-name').textContent = 'Βελτιωμένο prompt';
   updateOutput();
   // Reset & close modal
   pasteBackArea.classList.remove('visible');
