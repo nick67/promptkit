@@ -1,4 +1,4 @@
-const CACHE_NAME = 'promptkit-v3';
+const CACHE_NAME = 'promptkit-v4';
 const BASE = '/promptkit';
 const SHELL = [
   BASE + '/',
@@ -29,6 +29,24 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+
+  const isDocument = e.request.destination === 'document' || e.request.url.endsWith('/index.html');
+
+  if (isDocument) {
+    // Network-first for HTML: always try to get the latest version
+    e.respondWith(
+      fetch(e.request).then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(e.request).then(c => c || caches.match(BASE + '/index.html')))
+    );
+    return;
+  }
+
+  // Cache-first for everything else (icons, fonts, manifest)
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -37,11 +55,7 @@ self.addEventListener('fetch', e => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         return response;
-      }).catch(() => {
-        if (e.request.destination === 'document') {
-          return caches.match(BASE + '/index.html');
-        }
-      });
+      }).catch(() => {});
     })
   );
 });
