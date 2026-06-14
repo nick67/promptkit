@@ -164,6 +164,14 @@ html{overflow:hidden}
 .var-input{background:var(--bg3);border:1px solid var(--line2);border-radius:6px;padding:7px 10px;font-family:var(--font-mono);font-size:16px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
 .var-input:focus{border-color:var(--accent)}
 .var-row{position:relative}
+.var-row.code-field{grid-template-columns:1fr;gap:4px}
+.code-field-header{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.code-textarea{background:var(--bg3);border:1px solid var(--line2);border-radius:6px;padding:8px 10px;font-family:var(--font-mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s;width:100%;resize:vertical;min-height:90px;line-height:1.5}
+.code-textarea:focus{border-color:var(--accent)}
+.upload-btn{font-size:12px;padding:3px 10px;border-radius:var(--r);font-family:var(--font-mono);cursor:pointer;border:1px dashed var(--line2);background:transparent;color:var(--muted);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.upload-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.upload-btn.has-file{border-style:solid;border-color:var(--accent3);color:var(--accent3)}
+.upload-filename{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
 .hint-tooltip{position:absolute;left:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--accent);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px 12px;border-radius:var(--r);line-height:1.6;z-index:50;white-space:normal;max-width:420px;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 .var-row.hint-active .hint-tooltip{opacity:1;transform:translateY(0)}
 .hint-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);color:var(--muted);font-size:11px;cursor:default;flex-shrink:0;transition:border-color .15s,color .15s}
@@ -1153,24 +1161,70 @@ function selectTemplate(tpl) {
   if (tpl.vars.length > 0) {
     setVarSectionVisible(true);
     varGrid.innerHTML = '';
+    const CODE_FIELDS = ['current_html','current_css','buggy_code','slow_code','code'];
+
     tpl.vars.forEach(v => {
       const row = document.createElement('div');
-      row.className = 'var-row';
       const hint = HINTS[v] || v.replace(/_/g,' ') + '...';
-      row.innerHTML = `
-        <label class="var-label" style="display:flex;align-items:center;gap:6px;">
-          {{${v}}}
-        </label>
-        <input class="var-input" type="text" placeholder="${hint}" data-var="${v}">`;
+      const isCodeField = CODE_FIELDS.includes(v);
+
+      if (isCodeField) {
+        row.className = 'var-row code-field';
+        row.innerHTML = `
+          <div class="code-field-header">
+            <label class="var-label">{{${v}}}</label>
+            <span class="upload-filename" id="upload-name-${v}"></span>
+            <button type="button" class="upload-btn" id="upload-btn-${v}">📁 Upload αρχείο</button>
+            <input type="file" id="upload-file-${v}" style="display:none" accept=".html,.htm,.css,.js,.jsx,.ts,.tsx,.txt,text/*">
+          </div>
+          <textarea class="code-textarea" placeholder="${hint}" data-var="${v}"></textarea>`;
+      } else {
+        row.className = 'var-row';
+        row.innerHTML = `
+          <label class="var-label" style="display:flex;align-items:center;gap:6px;">
+            {{${v}}}
+          </label>
+          <input class="var-input" type="text" placeholder="${hint}" data-var="${v}">`;
+      }
       varGrid.appendChild(row);
     });
-    varGrid.querySelectorAll('.var-input').forEach(inp => {
+
+    varGrid.querySelectorAll('.var-input, .code-textarea').forEach(inp => {
       inp.oninput = () => { state.vars[inp.getAttribute('data-var')] = inp.value; updateOutput(); };
+    });
+
+    // File upload wiring for code fields
+    CODE_FIELDS.forEach(v => {
+      const btn  = document.getElementById(`upload-btn-${v}`);
+      const file = document.getElementById(`upload-file-${v}`);
+      const nameEl = document.getElementById(`upload-name-${v}`);
+      if (!btn || !file) return;
+      btn.onclick = () => file.click();
+      file.onchange = () => {
+        const f = file.files[0];
+        if (!f) return;
+        if (f.size > 1024 * 1024) { showToast('Το αρχείο είναι > 1MB'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const textarea = varGrid.querySelector(`textarea[data-var="${v}"]`);
+          if (textarea) {
+            textarea.value = e.target.result;
+            state.vars[v] = e.target.result;
+            updateOutput();
+          }
+          btn.classList.add('has-file');
+          btn.textContent = '📁 Αλλαγή αρχείου';
+          if (nameEl) nameEl.textContent = f.name;
+          showToast('✓ Φορτώθηκε: ' + f.name);
+        };
+        reader.readAsText(f);
+        file.value = '';
+      };
     });
 
     // Tooltip: show on row hover, hide when any input in the grid is focused
     function isAnyInputFocused() {
-      return [...varGrid.querySelectorAll('.var-input')].some(i => i === document.activeElement);
+      return [...varGrid.querySelectorAll('.var-input, .code-textarea')].some(i => i === document.activeElement);
     }
     varGrid.querySelectorAll('.var-row').forEach(row => {
       row.addEventListener('mouseenter', () => {
@@ -1178,7 +1232,7 @@ function selectTemplate(tpl) {
       });
       row.addEventListener('mouseleave', () => row.classList.remove('hint-active'));
     });
-    varGrid.querySelectorAll('.var-input').forEach(inp => {
+    varGrid.querySelectorAll('.var-input, .code-textarea').forEach(inp => {
       inp.addEventListener('focus', () => {
         varGrid.querySelectorAll('.var-row').forEach(r => r.classList.remove('hint-active'));
       });
@@ -1634,8 +1688,8 @@ function renderHistory() {
       promptEditor.value = entry.text;
       state.vars = {...(entry.vars||{})};
       // Refill var inputs if template selected
-      varGrid.querySelectorAll('.var-input').forEach(inp => {
-        inp.value = state.vars[inp.dataset.var] || '';
+      varGrid.querySelectorAll('.var-input, .code-textarea').forEach(inp => {
+        inp.value = state.vars[inp.getAttribute('data-var')] || '';
       });
       updateOutput();
       closeHistory();
